@@ -15,6 +15,6 @@ namespace ElCentre.Core.Entities
         [Required]
         public string Name { get; set; }
 
-        public ICollection<Course> Courses { get; set; }
+        public ICollection<Course> Courses { get; set; } = new List<Course>();
     }
 }

@@ -11,6 +11,7 @@ namespace ElCentre.Core.Entities
     public class CourseReview
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] 
         public int Id { get; set; }
 
         [Required]

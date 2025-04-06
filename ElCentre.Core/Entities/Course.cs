@@ -19,7 +19,7 @@ namespace ElCentre.Core.Entities
         public string Description { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal Price { get; set; }
+        public decimal Price { get; set; } = 0m;
 
         public string Thumbnail { get; set; }
 
@@ -37,10 +37,10 @@ namespace ElCentre.Core.Entities
         public int CategoryId { get; set; }
         public Category Category { get; set; }
 
-        public ICollection<Enrollment> Enrollments { get; set; }
+        public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
 
-        public ICollection<CourseModule> Modules { get; set; }
+        public ICollection<CourseModule> Modules { get; set; } = new List<CourseModule>();
 
-        public ICollection<CourseReview> Reviews { get; set; }
+        public ICollection<CourseReview> Reviews { get; set; } = new List<CourseReview>();
     }
 }
