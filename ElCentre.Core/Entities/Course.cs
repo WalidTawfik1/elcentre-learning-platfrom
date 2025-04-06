@@ -1,27 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ElCentre.Core.Entities
 {
-    public class Courses
+    public class Course
     {
+        [Key]
         public int Id { get; set; }
+
+        [Required]
         public string Title { get; set; }
+
         public string Description { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
+
         public string Thumbnail { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public bool IsActive { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        public bool IsActive { get; set; } = true;
+
         public int DurationInHours { get; set; }
-        public string InstractorId { get; set; }
-        public AppUser Insrtractor { get; set; }
+
+        [ForeignKey("Instructor")]
+        public string InstructorId { get; set; }
+        public AppUser Instructor { get; set; }
+
+        [ForeignKey("Category")]
         public int CategoryId { get; set; }
         public Category Category { get; set; }
-        public ICollection<Enrollments> Enrollments { get; set; }
+
+        public ICollection<Enrollment> Enrollments { get; set; }
+
         public ICollection<CourseModule> Modules { get; set; }
+
         public ICollection<CourseReview> Reviews { get; set; }
     }
 }
