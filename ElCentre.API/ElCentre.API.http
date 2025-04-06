@@ -1,0 +1,6 @@
+@ElCentre.API_HostAddress = http://localhost:5116
+
+GET {{ElCentre.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
