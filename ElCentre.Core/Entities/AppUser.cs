@@ -13,5 +13,9 @@ namespace ElCentre.Core.Entities
         public string LastName { get; set; }
         public DateTime CreatedAt { get; set; }
         public bool IsActive { get; set; } = true;
+        public ICollection<Courses> CreatedCourses { get; set; }
+        public ICollection<Enrollments> Enrollments { get; set; } 
+        public ICollection<Payment> payments { get; set; }
+        public ICollection<CourseReview> CourseReviews { get; set; }
     }
 }
