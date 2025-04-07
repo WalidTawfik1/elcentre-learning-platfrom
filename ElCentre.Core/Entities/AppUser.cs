@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace ElCentre.Core.Entities
@@ -17,12 +18,20 @@ namespace ElCentre.Core.Entities
 
         public bool IsActive { get; set; } = true;
 
-        public ICollection<Course> CreatedCourses { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public Gender Gender { get; set; }
 
-        public ICollection<Enrollment> Enrollments { get; set; } 
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public UserType UserType { get; set; }
 
-        public ICollection<Payment> Payments { get; set; }
+        public DateOnly DateOfBirth { get; set; }
 
-        public ICollection<CourseReview> CourseReviews { get; set; }
+        public ICollection<Course> CreatedCourses { get; set; } = new List<Course>();
+
+        public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+
+        public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+        public ICollection<CourseReview> CourseReviews { get; set; } = new List<CourseReview>();
     }
 }

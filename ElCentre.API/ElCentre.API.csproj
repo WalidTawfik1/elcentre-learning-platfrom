@@ -21,10 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-    <Folder Include="Helper\" />
     <Folder Include="Mapping\" />
-    <Folder Include="Middlewares\" />
+    <Folder Include="wwwroot\" />
   </ItemGroup>
 
   <ItemGroup>

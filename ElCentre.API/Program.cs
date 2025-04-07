@@ -1,4 +1,5 @@
 
+using ElCentre.API.Middlewares;
 using ElCentre.Infrastructure;
 
 namespace ElCentre.API
@@ -10,7 +11,12 @@ namespace ElCentre.API
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("CORSPolicy", builder =>
+                builder.AllowAnyMethod().AllowAnyHeader().AllowCredentials().SetIsOriginAllowed(_ => true));
+            });
+            builder.Services.AddMemoryCache();
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -30,11 +36,19 @@ namespace ElCentre.API
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            app.UseCors("CORSPolicy");
 
-            app.UseHttpsRedirection();
+            app.UseMiddleware<ExceptionsMiddleware>();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
+            app.UseStaticFiles();
+
+            app.UseStatusCodePagesWithReExecute("/errors/{0}");
+
+            app.UseHttpsRedirection();
 
             app.MapControllers();
 
