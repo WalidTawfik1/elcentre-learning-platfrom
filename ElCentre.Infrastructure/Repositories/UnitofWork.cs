@@ -22,6 +22,7 @@ namespace ElCentre.Infrastructure.Repositories
         private readonly IEmailService _emailService;
 
         public IAuthentication Authentication { get; }
+        public ICategoryRepository CategoryRepository { get; }
 
         public UnitofWork(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IMapper mapper, ElCentreDbContext context, IGenerateToken generateToken, IEmailService emailService)
         {
@@ -33,6 +34,7 @@ namespace ElCentre.Infrastructure.Repositories
             _emailService = emailService;
 
             Authentication = new AuthenticationRepository(_userManager, _emailService, _signInManager, _generateToken,_context);
+            CategoryRepository = new CategoryRepository(_context);
 
         }
 
