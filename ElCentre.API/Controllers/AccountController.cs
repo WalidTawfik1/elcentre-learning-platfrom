@@ -126,5 +126,66 @@ namespace ElCentre.API.Controllers
             Response.Cookies.Delete("token");
             return Ok(new APIResponse(200, "Logged out Successfully"));
         }
+
+        /// <summary>
+        /// Gets the profile of the authenticated user.
+        /// </summary>
+        /// <returns>User profile</returns>
+        [Authorize]
+        [HttpGet("profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            try
+            {
+                // The repository method will get the ID from the authenticated user
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized("User not authenticated, Please login or register.");
+                }
+
+                var user = await work.UserRepository.GetUserProfileAsync(userId);
+                if (user == null)
+                {
+                    return NotFound($"User profile not found.");
+                }
+
+                return Ok(user);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Updates the profile of the authenticated user.
+        /// </summary>
+        /// <param name="customerDTO"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPut("edit-profile")]
+        public async Task<IActionResult> EditProfile([FromBody] UserDTO userDTO)
+        {
+            try
+            {
+                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized("User not authenticated, Please login or register.");
+                }
+
+                var updatedUser = await work.UserRepository.UpdateUserProfileAsync(userId, userDTO);
+                return Ok(updatedUser);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
     }
 }

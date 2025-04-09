@@ -10,5 +10,6 @@ namespace ElCentre.Core.Interfaces
     {
         IAuthentication Authentication { get; }
         ICategoryRepository CategoryRepository { get; }
+        IUserRepository UserRepository { get; }
     }
 }
