@@ -20,6 +20,7 @@ namespace ElCentre.Infrastructure.Data
         public DbSet<Lesson> Lessons { get; set; }
         public DbSet<CourseReview> CourseReviews { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<OtpVerification> OtpVerifications { get; set; }
 
         public ElCentreDbContext(DbContextOptions<ElCentreDbContext> options) : base(options)
         {

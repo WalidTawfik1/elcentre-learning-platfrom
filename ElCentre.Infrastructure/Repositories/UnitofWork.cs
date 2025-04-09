@@ -32,7 +32,7 @@ namespace ElCentre.Infrastructure.Repositories
             _generateToken = generateToken;
             _emailService = emailService;
 
-            Authentication = new AuthenticationRepository(_userManager, _emailService, _signInManager, _generateToken);
+            Authentication = new AuthenticationRepository(_userManager, _emailService, _signInManager, _generateToken,_context);
 
         }
 

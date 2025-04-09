@@ -3,7 +3,9 @@ using ElCentre.Core.Entities;
 using ElCentre.Core.Interfaces;
 using ElCentre.Core.Services;
 using ElCentre.Core.Sharing;
+using ElCentre.Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,116 +20,128 @@ namespace ElCentre.Infrastructure.Repositories
         private readonly IEmailService emailService;
         private readonly SignInManager<AppUser> signInManager;
         private readonly IGenerateToken generateToken;
+        private readonly ElCentreDbContext context;
 
-
-        public AuthenticationRepository(UserManager<AppUser> userManager, IEmailService emailService, SignInManager<AppUser> signInManager, IGenerateToken generateToken)
+        public AuthenticationRepository(UserManager<AppUser> userManager, IEmailService emailService, SignInManager<AppUser> signInManager, IGenerateToken generateToken, ElCentreDbContext context)
         {
             this.userManager = userManager;
             this.emailService = emailService;
             this.signInManager = signInManager;
             this.generateToken = generateToken;
+            this.context = context;
         }
 
-        public async Task<bool> ActiveAccount(ActiveAccountDTO activeAccountDTO)
+        public async Task<string> RegisterAsync(RegisterDTO registerDTO)
         {
-            var user = await userManager.FindByEmailAsync(activeAccountDTO.Email);
-            if (user == null)
+            try
             {
-                return false;
+                if (registerDTO == null)
+                {
+                    return null;
+                }
+                if (await userManager.FindByEmailAsync(registerDTO.Email) != null)
+                {
+                    return "This email already exists";
+                }
+                var user = new AppUser
+                {
+                    FirstName = registerDTO.FirstName,
+                    LastName = registerDTO.LastName,
+                    Email = registerDTO.Email,
+                    UserName = registerDTO.Email.Split('@')[0],
+                    PhoneNumber = registerDTO.PhoneNumber,
+                    CreatedAt = DateTime.Now,
+                    Gender = registerDTO.Gender,
+                    DateOfBirth = registerDTO.DateOfBirth,
+                    UserType = registerDTO.UserType,
+                };
+                var result = await userManager.CreateAsync(user, registerDTO.Password);
+                if (!result.Succeeded)
+                {
+                    return string.Join(", ", result.Errors.Select(e => e.Description));
+                }
+                if (registerDTO.UserType == "Student")
+                {
+                    var roleResult = await userManager.AddToRoleAsync(user, "Student");
+                    if (!roleResult.Succeeded)
+                    {
+                        return string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                    }
+                }
+                else if (registerDTO.UserType == "Instructor")
+                {
+                    var roleResult = await userManager.AddToRoleAsync(user, "Instructor");
+                    if (!roleResult.Succeeded)
+                    {
+                        return string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                    }
+                }
+                else if(registerDTO.UserType == "Admin")
+                {
+                    var roleResult = await userManager.AddToRoleAsync(user, "Admin");
+                    if (!roleResult.Succeeded)
+                    {
+                        return string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                    }
+                }
+                else
+                {
+                    return "Invalid User Type";
+
+                }
+
+                // Generate OTP code instead of token
+                string otpCode = GenerateCode.GenerateOtpCode(6);
+
+                // Store OTP in database
+                await StoreOtpForUser(user.Email, otpCode);
+
+                // Send OTP email
+                await SendEmailWithOtp(user.Email, otpCode, "Please verify your email by entering the code below in the app");
+
+                return "User Created Successfully";
             }
-            var result = await userManager.ConfirmEmailAsync(user, activeAccountDTO.Token);
-            if (result.Succeeded)
+            catch (DbUpdateException dbEx)
             {
-                return true;
+                var innerMessage = dbEx.InnerException?.Message ?? "No inner exception";
+                // Log or return the innerMessage
+                return $"Database error: {innerMessage}";
             }
-            var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-            await SendEmail(user.Email, token, "Active", "Email Activation", "Please Active your email, click on button to active");
-            return false;
+            catch (Exception ex)
+            {
+                // Log or return ex.Message
+                return $"Unexpected error: {ex.Message}";
+            }
         }
 
         public async Task<string> LoginAsync(LoginDTO loginDTO)
         {
-            if (loginDTO == null) return null;
+            if (loginDTO == null)
+            {
+                return null;
+            }
             var user = await userManager.FindByEmailAsync(loginDTO.Email);
+
             if (!user.EmailConfirmed)
             {
-                string token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-                await SendEmail(email: user.Email, token, "Active", "Email Activation", "Please Active your email, click on button to active");
-                return "Please Active your email first, we have sent the acivation link to your email";
+                // Generate OTP code instead of token
+                string otpCode = GenerateCode.GenerateOtpCode(6);
+
+                // Store OTP in database
+                await StoreOtpForUser(user.Email, otpCode);
+
+                // Send OTP email
+                await SendEmailWithOtp(user.Email, otpCode, "Please verify your email by entering the code below in the app");
+
+                return "Please verify your email first. We have sent a verification code to your email";
             }
-            var result = await signInManager.CheckPasswordSignInAsync(user, loginDTO.Password, lockoutOnFailure: true);
+
+            var result = await signInManager.CheckPasswordSignInAsync(user, loginDTO.Password, true);
             if (result.Succeeded)
             {
                 return generateToken.GetAndCreateToken(user);
             }
             return "Invalid Email or Password";
-        }
-
-        public async Task<string> RegisterAsync(RegisterDTO registerDTO)
-        {
-            if (registerDTO == null) return null;
-
-            if (await userManager.FindByEmailAsync(registerDTO.Email) != null)
-            {
-                return "This email already exists";
-            }
-            var user = new AppUser
-            {
-                FirstName = registerDTO.FirstName,
-                LastName = registerDTO.LastName,
-                Email = registerDTO.Email,
-                PhoneNumber = registerDTO.PhoneNumber,
-                UserName = registerDTO.Email.Split('@')[0],
-                Gender = registerDTO.Gender,
-                DateOfBirth = registerDTO.DateOfBirth,
-                UserType = registerDTO.UserType
-            };
-            var result = await userManager.CreateAsync(user, registerDTO.Password);
-            if (!result.Succeeded)
-            {
-                return string.Join(", ", result.Errors.Select(e => e.Description));
-            }
-            // Add user to the specified role
-            if (registerDTO.UserType == UserType.Instructor)
-            {
-                await userManager.AddToRoleAsync(user, "Instructor");
-            }
-            if (registerDTO.UserType == UserType.Student)
-            {
-                await userManager.AddToRoleAsync(user, "Student");
-            }
-            if (registerDTO.UserType == UserType.Admin)
-            {
-                await userManager.AddToRoleAsync(user, "Admin");
-            }
-
-            // Send email for account activation
-            var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-            await SendEmail(email: user.Email, token, "Active", "Email Activation", "Please Active your email, click on button to active");
-            return "User Created Successfully";
-
-        }
-
-        public async Task SendEmail(string email, string code, string component, string subject, string message)
-        {
-            var result = new EmailDTO(
-                email,
-                "elcentre.business@gmail.com",
-                subject,
-                EmailStringBody.send(email, code, component, message));
-            await emailService.SendEmailAsync(result);
-        }
-
-        public async Task<string> ResetPassword(ResetPasswordDTO resetPasswordDTO)
-        {
-            var user = await userManager.FindByEmailAsync(resetPasswordDTO.Email);
-            if (user == null) return "Invalid Email";
-            var result = await userManager.ResetPasswordAsync(user, resetPasswordDTO.Token, resetPasswordDTO.Password);
-            if (result.Succeeded)
-            {
-                return "Password reset successfully";
-            }
-            return result.Errors.ToList()[0].Description;
         }
 
         public async Task<bool> SendEmailForgetPassword(string email)
@@ -137,9 +151,125 @@ namespace ElCentre.Infrastructure.Repositories
             {
                 return false;
             }
-            var token = await userManager.GeneratePasswordResetTokenAsync(user);
-            await SendEmail(user.Email, token, "ResetPassword", "Reset Password", "Please Reset your password, click on button to reset");
+
+            // Generate OTP code instead of token
+            string otpCode = GenerateCode.GenerateOtpCode(6);
+
+            // Store OTP in database with purpose "ResetPassword"
+            await StoreOtpForUser(user.Email, otpCode, "ResetPassword");
+
+            // Send OTP email
+            await SendEmailWithOtp(user.Email, otpCode, "Please use the code below to reset your password");
+
             return true;
+        }
+
+        public async Task<string> ResetPassword(ResetPasswordDTO resetPasswordDTO)
+        {
+            var user = await userManager.FindByEmailAsync(resetPasswordDTO.Email);
+            if (user == null)
+            {
+                return "Invalid Email";
+            }
+
+            // Verify OTP code
+            var otpVerification = await context.OtpVerifications
+                .Where(o => o.Email == resetPasswordDTO.Email && o.OtpCode == resetPasswordDTO.Code && !o.IsUsed)
+                .OrderByDescending(o => o.ExpirationTime)
+                .FirstOrDefaultAsync();
+
+            if (otpVerification == null)
+            {
+                return "Invalid verification code";
+            }
+
+            if (otpVerification.ExpirationTime < DateTime.UtcNow)
+            {
+                return "Verification code has expired";
+            }
+
+            // Mark OTP as used
+            otpVerification.IsUsed = true;
+            await context.SaveChangesAsync();
+
+            // Generate token for password reset
+            string token = await userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await userManager.ResetPasswordAsync(user, token, resetPasswordDTO.Password);
+
+            if (result.Succeeded)
+            {
+                return "Password Reset Successfully";
+            }
+            return result.Errors.ToList()[0].Description;
+        }
+
+        public async Task<bool> ActiveAccount(ActiveAccountDTO activeAccountDTO)
+        {
+            var user = await userManager.FindByEmailAsync(activeAccountDTO.Email);
+            if (user == null)
+            {
+                return false;
+            }
+
+            // Verify OTP code
+            var otpVerification = await context.OtpVerifications
+                .Where(o => o.Email == activeAccountDTO.Email && o.OtpCode == activeAccountDTO.Code && !o.IsUsed)
+                .OrderByDescending(o => o.ExpirationTime)
+                .FirstOrDefaultAsync();
+
+            if (otpVerification == null)
+            {
+                return false;
+            }
+
+            if (otpVerification.ExpirationTime < DateTime.UtcNow)
+            {
+                // Generate new OTP if expired
+                string otpCode = GenerateCode.GenerateOtpCode(6);
+                await StoreOtpForUser(user.Email, otpCode);
+                await SendEmailWithOtp(user.Email, otpCode, "Please verify your email by entering the code below in the app");
+                return false;
+            }
+
+            // Mark OTP as used
+            otpVerification.IsUsed = true;
+            await context.SaveChangesAsync();
+
+            // Confirm email
+            string token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+            var result = await userManager.ConfirmEmailAsync(user, token);
+
+            return result.Succeeded;
+        }
+
+        public async Task StoreOtpForUser(string email, string otpCode, string purpose = "VerifyEmail")
+        {
+            DateTime expirationTime = DateTime.UtcNow.AddMinutes(10);
+
+            var otpVerification = new OtpVerification
+            {
+                Email = email,
+                OtpCode = otpCode,
+                ExpirationTime = expirationTime,
+                IsUsed = false,
+                Purpose = purpose
+            };
+
+            context.OtpVerifications.Add(otpVerification);
+            await context.SaveChangesAsync();
+        }
+
+        public async Task SendEmailWithOtp(string email, string otpCode, string message)
+        {
+            EmailDTO emailDTO = new EmailDTO
+                (
+                to: email,
+                from: "elcentre.business@gmail.com",
+                subject: "Email Verification",
+                content: EmailStringBody.send(email, otpCode, message)
+                );
+
+            await emailService.SendEmailAsync(emailDTO);
         }
     }
 }

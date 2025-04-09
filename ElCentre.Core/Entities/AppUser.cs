@@ -18,11 +18,9 @@ namespace ElCentre.Core.Entities
 
         public bool IsActive { get; set; } = true;
 
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public Gender Gender { get; set; }
+        public string Gender { get; set; }
 
-        [JsonConverter(typeof(JsonStringEnumConverter))]
-        public UserType UserType { get; set; }
+        public string UserType { get; set; }
 
         public DateOnly DateOfBirth { get; set; }
 

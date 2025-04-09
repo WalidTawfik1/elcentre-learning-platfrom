@@ -8,9 +8,8 @@ namespace ElCentre.Core.Sharing
 {
     public class EmailStringBody
     {
-        public static string send(string email, string token, string component, string message)
+        public static string send(string email, string otpCode, string message)
         {
-            string encodeToken = Uri.EscapeDataString(token);
             return $@"
 <html>
 <head>
@@ -42,14 +41,23 @@ namespace ElCentre.Core.Sharing
             color: #333333;
             margin-bottom: 30px;
         }}
-        .button {{
-            display: inline-block;
-            padding: 12px 25px;
-            background-color: #007bff;
-            color: #ffffff;
-            text-decoration: none;
-            font-size: 16px;
+        .otp-container {{
+            margin: 25px 0;
+        }}
+        .otp-code {{
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            color: #007bff;
+            padding: 15px 25px;
+            background-color: #f0f7ff;
             border-radius: 5px;
+            border: 1px dashed #007bff;
+        }}
+        .instructions {{
+            margin-top: 20px;
+            font-size: 16px;
+            color: #555555;
         }}
         .footer {{
             margin-top: 30px;
@@ -64,18 +72,21 @@ namespace ElCentre.Core.Sharing
             <div class='message'>
                 {message}
             </div>
-            <a href='http://localhost:3000/Account/{component}?email={email}&code={encodeToken}' class='button'>
-                Activate Account
-            </a>
+            <div class='otp-container'>
+                <div class='otp-code'>{otpCode}</div>
+            </div>
+            <div class='instructions'>
+                Enter this verification code in the app to verify your account.
+            </div>
             <div class='footer'>
                 If you did not request this, please ignore this email.
+                This code will expire in 10 minutes.
             </div>
         </div>
     </div>
 </body>
 </html>
 ";
-
         }
     }
 }
