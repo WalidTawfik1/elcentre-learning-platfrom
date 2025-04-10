@@ -1,6 +1,7 @@
 
 using ElCentre.API.Middlewares;
 using ElCentre.Infrastructure;
+using System.Reflection;
 
 namespace ElCentre.API
 {
@@ -20,7 +21,17 @@ namespace ElCentre.API
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(s =>
+            {
+                s.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "ElCentre.API",
+                    Version = "v1"
+                }); 
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                s.IncludeXmlComments(xmlPath);
+            });
 
             // Add Infrastructure services
             builder.Services.InfrastructureConfiguration(builder.Configuration);
@@ -34,7 +45,11 @@ namespace ElCentre.API
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ElCentre API V1");
+                    c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
+                });
             }
             app.UseCors("CORSPolicy");
 

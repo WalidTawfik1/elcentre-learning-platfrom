@@ -29,6 +29,8 @@ namespace ElCentre.Core.Entities
 
         public int DurationInHours { get; set; }
 
+        public double Rating { get; set; }
+
         [ForeignKey("Instructor")]
         public string InstructorId { get; set; }
         public AppUser Instructor { get; set; }

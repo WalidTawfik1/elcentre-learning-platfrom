@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -33,6 +34,12 @@ namespace ElCentre.Infrastructure
 
             // Register IGenerateToken service
             services.AddScoped<IGenerateToken, GenerateToken>();
+
+            // Register ICourseThumbnail service
+            services.AddSingleton<ICourseThumbnailService, CourseThumbnailService>();
+
+            // Register the IFileProvider service
+            services.AddSingleton<IFileProvider>(new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory())));
 
             // Register AppDbContext with SQL Server
             services.AddDbContext<ElCentreDbContext>((options) =>

@@ -15,7 +15,7 @@ namespace ElCentre.Core.Entities
         public int Id { get; set; }
 
         [Required]
-        public int Rating { get; set; }
+        public double Rating { get; set; }
 
         public string ReviewContent { get; set; }
 

@@ -20,12 +20,14 @@ namespace ElCentre.Infrastructure.Repositories
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IGenerateToken _generateToken;
         private readonly IEmailService _emailService;
+        private readonly ICourseThumbnailService _courseThumbnailService;
 
         public IAuthentication Authentication { get; }
         public ICategoryRepository CategoryRepository { get; }
         public IUserRepository UserRepository { get; }
+        public ICourseRepository CourseRepository { get; }
 
-        public UnitofWork(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IMapper mapper, ElCentreDbContext context, IGenerateToken generateToken, IEmailService emailService)
+        public UnitofWork(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IMapper mapper, ElCentreDbContext context, IGenerateToken generateToken, IEmailService emailService, ICourseThumbnailService courseThumbnailService)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -33,11 +35,12 @@ namespace ElCentre.Infrastructure.Repositories
             _context = context;
             _generateToken = generateToken;
             _emailService = emailService;
+            _courseThumbnailService = courseThumbnailService;
 
-            Authentication = new AuthenticationRepository(_userManager, _emailService, _signInManager, _generateToken,_context);
+            Authentication = new AuthenticationRepository(_userManager, _emailService, _signInManager, _generateToken, _context);
             CategoryRepository = new CategoryRepository(_context);
             UserRepository = new UserRepository(_context, _mapper);
-
+            CourseRepository = new CourseRepository(_courseThumbnailService, _mapper, _context);
         }
 
     }
