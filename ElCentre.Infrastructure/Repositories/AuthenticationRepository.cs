@@ -174,7 +174,7 @@ namespace ElCentre.Infrastructure.Repositories
 
             // Verify OTP code
             var otpVerification = await context.OtpVerifications
-                .Where(o => o.Email == resetPasswordDTO.Email && o.OtpCode == resetPasswordDTO.Code && !o.IsUsed)
+                .Where(o => o.Email == resetPasswordDTO.Email && o.OtpCode == resetPasswordDTO.Code)
                 .OrderByDescending(o => o.ExpirationTime)
                 .FirstOrDefaultAsync();
 
@@ -187,10 +187,6 @@ namespace ElCentre.Infrastructure.Repositories
             {
                 return "Verification code has expired";
             }
-
-            // Mark OTP as used
-            otpVerification.IsUsed = true;
-            await context.SaveChangesAsync();
 
             // Generate token for password reset
             string token = await userManager.GeneratePasswordResetTokenAsync(user);
@@ -270,6 +266,75 @@ namespace ElCentre.Infrastructure.Repositories
                 );
 
             await emailService.SendEmailAsync(emailDTO);
+        }
+
+        public async Task<bool> CheckOtpCode(string email, string otpCode)
+        {
+            // Verify OTP code
+            var otpVerification = await context.OtpVerifications
+                .Where(o => o.Email == email && o.OtpCode == otpCode && !o.IsUsed)
+                .OrderByDescending(o => o.ExpirationTime)
+                .FirstOrDefaultAsync();
+
+            if (otpVerification == null)
+            {
+                return false;
+            }
+
+            if (otpVerification.ExpirationTime < DateTime.UtcNow)
+            {
+                return false;
+            }
+
+            otpVerification.IsUsed = true;
+            await context.SaveChangesAsync();
+            return true;
+
+        }
+
+        public async Task<bool> ResendOtpCode(string email)
+        {
+            var customer = await userManager.FindByEmailAsync(email);
+            if (customer == null)
+            {
+                return false;
+            }
+
+            // Determine purpose based on user status
+            string purpose = "VerifyEmail";
+
+            // Check if there's an existing OTP for password reset
+            var existingPasswordResetOtp = await context.OtpVerifications
+                .Where(o => o.Email == email && o.Purpose == "ResetPassword" && !o.IsUsed)
+                .OrderByDescending(o => o.ExpirationTime)
+                .FirstOrDefaultAsync();
+
+            if (existingPasswordResetOtp != null && existingPasswordResetOtp.ExpirationTime > DateTime.UtcNow)
+            {
+                // If there's a valid password reset OTP, continue with that purpose
+                purpose = "ResetPassword";
+            }
+            else if (customer.EmailConfirmed)
+            {
+                // If email is already confirmed, this is likely a password reset
+                purpose = "ResetPassword";
+            }
+
+            // Generate new OTP
+            string otpCode = GenerateCode.GenerateOtpCode(6);
+
+            // Store OTP in database
+            await StoreOtpForUser(email, otpCode, purpose);
+
+            // Send appropriate message based on purpose
+            string message = purpose == "ResetPassword"
+                ? "Please use the code below to reset your password"
+                : "Please verify your email by entering the code below in the app";
+
+            // Send OTP email
+            await SendEmailWithOtp(email, otpCode, message);
+
+            return true;
         }
     }
 }
