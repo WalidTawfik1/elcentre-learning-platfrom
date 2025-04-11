@@ -41,6 +41,9 @@ namespace ElCentre.Infrastructure
             // Register the IFileProvider service
             services.AddSingleton<IFileProvider>(new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory())));
 
+            // Register AddHttpContextAccessor to get user info
+            services.AddHttpContextAccessor();
+
             // Register AppDbContext with SQL Server
             services.AddDbContext<ElCentreDbContext>((options) =>
             {

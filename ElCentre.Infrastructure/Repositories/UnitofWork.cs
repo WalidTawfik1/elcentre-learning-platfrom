@@ -3,6 +3,7 @@ using ElCentre.Core.Entities;
 using ElCentre.Core.Interfaces;
 using ElCentre.Core.Services;
 using ElCentre.Infrastructure.Data;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,7 @@ namespace ElCentre.Infrastructure.Repositories
         private readonly IGenerateToken _generateToken;
         private readonly IEmailService _emailService;
         private readonly ICourseThumbnailService _courseThumbnailService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public IAuthentication Authentication { get; }
         public ICategoryRepository CategoryRepository { get; }

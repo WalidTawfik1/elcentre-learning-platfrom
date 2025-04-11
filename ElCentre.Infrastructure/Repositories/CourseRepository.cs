@@ -5,10 +5,13 @@ using ElCentre.Core.Interfaces;
 using ElCentre.Core.Services;
 using ElCentre.Core.Sharing;
 using ElCentre.Infrastructure.Data;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,30 +23,45 @@ namespace ElCentre.Infrastructure.Repositories
         private readonly IMapper mapper;
         private readonly ICourseThumbnailService courseThumbnailService;
 
-        public CourseRepository(ICourseThumbnailService courseThumbnailService, IMapper mapper, ElCentreDbContext context):base(context)
+        public CourseRepository(ICourseThumbnailService courseThumbnailService, IMapper mapper, ElCentreDbContext context) : base(context)
         {
             this.courseThumbnailService = courseThumbnailService;
             this.mapper = mapper;
             this.context = context;
         }
 
-        public async Task<bool> AddAsync(AddCourseDTO addCourseDTO)
+        public async Task<bool> AddAsync(AddCourseDTO addCourseDTO, string InstructorId)
         {
             if (addCourseDTO == null) return false;
-            var course = mapper.Map<Course>(addCourseDTO);
+
+            var course = new Course
+            {
+                Title = addCourseDTO.Title,
+                Description = addCourseDTO.Description,
+                Price = addCourseDTO.Price,
+                IsActive = addCourseDTO.IsActive,
+                DurationInHours = addCourseDTO.DurationInHours,
+                InstructorId = InstructorId,
+                CategoryId = addCourseDTO.CategoryId,
+            };
+
             if (addCourseDTO.Thumbnail != null)
             {
-                var thumbnail = await courseThumbnailService.AddImageAsync(addCourseDTO.Thumbnail,addCourseDTO.Title);
+                if (courseThumbnailService == null) return false;
+                var thumbnail = await courseThumbnailService.AddImageAsync(addCourseDTO.Thumbnail, addCourseDTO.Title);
                 course.Thumbnail = thumbnail;
             }
             else
             {
                 course.Thumbnail = "default.png";
             }
+
             await context.Courses.AddAsync(course);
             await context.SaveChangesAsync();
+
             return true;
         }
+
 
         public async Task DeleteAsync(Course course)
         {
@@ -73,10 +91,8 @@ namespace ElCentre.Infrastructure.Repositories
             }
 
             // Filter by category
-            if (courseParams.categoryId != 0)
-            {
-                query = query.Where(c => c.CategoryId == courseParams.categoryId);
-            }
+            if (courseParams.categoryId.HasValue)
+                query = query.Where(m => m.CategoryId == courseParams.categoryId);
 
             // Filter by price
             if (courseParams.minPrice != null && courseParams.maxPrice != null)
@@ -106,8 +122,9 @@ namespace ElCentre.Infrastructure.Repositories
 
             query = query.Skip((courseParams.pagenum - 1) * courseParams.pagesize).Take(courseParams.pagesize);
 
-            var result = await query.ToListAsync();
-            return mapper.Map<List<CourseDTO>>(result);
+            var result = mapper.Map<List<CourseDTO>>(query);
+            return result;
+
         }
 
         public async Task<bool> UpdateAsync(UpdateCourseDTO updateCourseDTO)

@@ -6,6 +6,7 @@ using ElCentre.Core.Sharing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ElCentre.API.Controllers
 {
@@ -72,13 +73,14 @@ namespace ElCentre.API.Controllers
         [HttpPost("add-course")]
         public async Task<IActionResult> AddCourse(AddCourseDTO addCourseDTO)
         {
+            var InstructorId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
             try
             {
                 if (addCourseDTO == null)
                 {
                     return BadRequest(new APIResponse(400, "Please Fill All Fields"));
                 }
-                var result = await work.CourseRepository.AddAsync(addCourseDTO);
+                var result = await work.CourseRepository.AddAsync(addCourseDTO,InstructorId);
                 if (result)
                 {
                     return Ok(new APIResponse(200, "Course Added Successfully"));

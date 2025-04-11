@@ -265,7 +265,7 @@ namespace ElCentre.Infrastructure.Repositories
                 (
                 to: email,
                 from: "elcentre.business@gmail.com",
-                subject: "Email Verification",
+                subject: "ElCentre Verification Code",
                 content: EmailStringBody.send(email, otpCode, message)
                 );
 

@@ -24,8 +24,6 @@ namespace ElCentre.Core.DTO
 
         public int DurationInHours { get; set; }
 
-        public int InstructorId { get; set; }
-
         public int CategoryId { get; set; }
     }
     public record CourseDTO
@@ -53,8 +51,22 @@ namespace ElCentre.Core.DTO
         public string CategoryName { get; set; }
     }
    
-    public record UpdateCourseDTO : AddCourseDTO
+    public record UpdateCourseDTO 
     {
         public int Id { get; set; }
+
+        public string Title { get; set; }
+
+        public string Description { get; set; }
+
+        public decimal Price { get; set; }
+
+        public IFormFileCollection Thumbnail { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public int DurationInHours { get; set; }
+
+        public int CategoryId { get; set; }
     }
 }
