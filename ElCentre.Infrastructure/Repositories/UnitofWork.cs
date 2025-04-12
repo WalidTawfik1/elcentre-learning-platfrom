@@ -22,12 +22,12 @@ namespace ElCentre.Infrastructure.Repositories
         private readonly IGenerateToken _generateToken;
         private readonly IEmailService _emailService;
         private readonly ICourseThumbnailService _courseThumbnailService;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public IAuthentication Authentication { get; }
         public ICategoryRepository CategoryRepository { get; }
         public IUserRepository UserRepository { get; }
         public ICourseRepository CourseRepository { get; }
+        public ICourseModuleRepository CourseModuleRepository { get; }
 
         public UnitofWork(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IMapper mapper, ElCentreDbContext context, IGenerateToken generateToken, IEmailService emailService, ICourseThumbnailService courseThumbnailService)
         {
@@ -43,6 +43,7 @@ namespace ElCentre.Infrastructure.Repositories
             CategoryRepository = new CategoryRepository(_context);
             UserRepository = new UserRepository(_context, _mapper);
             CourseRepository = new CourseRepository(_courseThumbnailService, _mapper, _context);
+            CourseModuleRepository = new CourseModuleRepository(_context);
         }
 
     }
