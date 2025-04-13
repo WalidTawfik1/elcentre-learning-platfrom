@@ -22,7 +22,7 @@ namespace ElCentre.Core.Entities
 
         public int OrderIndex { get; set; }
 
-        public int DurationTnMinutes { get; set; }
+        public int DurationInMinutes { get; set; }
 
         public bool IsPublished { get; set; } = true;
 

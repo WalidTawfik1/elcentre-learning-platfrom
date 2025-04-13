@@ -74,7 +74,7 @@ namespace ElCentre.API.Controllers
         /// <returns></returns>
         [Authorize(Roles = "Admin,Instructor")]
         [HttpPost("add-course-module")]
-        public async Task<IActionResult> AddCourseModule(AddCourseModuleDTO addCourseModule)
+        public async Task<IActionResult> AddCourseModule([FromForm] AddCourseModuleDTO addCourseModule)
         {
             try
             {
@@ -95,7 +95,7 @@ namespace ElCentre.API.Controllers
         /// <returns></returns>
         [Authorize(Roles = "Admin,Instructor")]
         [HttpPut("update-course-module")]
-        public async Task<IActionResult> UpdateCourseModule(UpdateCourseModuleDTO updateCourseModule)
+        public async Task<IActionResult> UpdateCourseModule([FromForm] UpdateCourseModuleDTO updateCourseModule)
         {
             try
             {

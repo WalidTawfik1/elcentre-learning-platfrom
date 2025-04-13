@@ -1,4 +1,5 @@
-﻿using ElCentre.Core.Entities;
+﻿using ElCentre.Core.DTO;
+using ElCentre.Core.Entities;
 using ElCentre.Core.Interfaces;
 using ElCentre.Core.Services;
 using ElCentre.Infrastructure.Data;
@@ -40,6 +41,12 @@ namespace ElCentre.Infrastructure
 
             // Register the IFileProvider service
             services.AddSingleton<IFileProvider>(new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory())));
+
+            // Register the ICloudinarySettings service
+            services.Configure<CloudinarySettings>(configuration.GetSection("CloudinarySettings"));
+
+            // Register the IVideoService
+            services.AddScoped<IVideoService, VideoService>();
 
             // Register AddHttpContextAccessor to get user info
             services.AddHttpContextAccessor();
