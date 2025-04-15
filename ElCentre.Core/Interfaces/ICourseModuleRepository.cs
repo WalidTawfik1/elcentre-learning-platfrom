@@ -1,4 +1,5 @@
-﻿using ElCentre.Core.Entities;
+﻿using ElCentre.Core.DTO;
+using ElCentre.Core.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

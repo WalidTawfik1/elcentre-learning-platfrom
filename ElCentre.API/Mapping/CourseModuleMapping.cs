@@ -16,6 +16,13 @@ namespace ElCentre.API.Mapping
                 .ForMember(dest => dest.OrderIndex, opt => opt.Ignore());
 
             CreateMap<CourseModule, UpdateCourseModuleDTO>();
+
+            // If you want to include Lessons in the CourseModuleDTO, uncomment the following code
+            /*
+            CreateMap<CourseModule, CourseModuleDTO>()
+               .ForMember(dest => dest.Lessons, opt => opt.MapFrom(src => src.Lessons));
+
+            CreateMap<Lesson, LessonsDTO>();*/
         }
     }
 }

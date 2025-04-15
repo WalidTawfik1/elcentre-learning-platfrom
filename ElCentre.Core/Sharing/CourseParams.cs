@@ -9,8 +9,8 @@ namespace ElCentre.Core.Sharing
     public class CourseParams
     {
         public int pagenum { get; set; } = 1;
-        public int Maxpagesize { get; set; } = 6;
-        private int _pagesize = 3;
+        public int Maxpagesize { get; set; } = 50;
+        private int _pagesize = 16;
 
         public int pagesize
         {

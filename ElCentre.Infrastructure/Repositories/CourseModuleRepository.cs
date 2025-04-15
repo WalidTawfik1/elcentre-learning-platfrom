@@ -68,7 +68,6 @@ namespace ElCentre.Infrastructure.Repositories
             return await _context.CourseModules
                 .Where(m => m.CourseId == courseId)
                 .OrderBy(m => m.OrderIndex)
-                .Include(m => m.Lessons)
                 .ToListAsync();
         }
         public async Task<bool> UpdateCourseModuleAsync(CourseModule courseModule)

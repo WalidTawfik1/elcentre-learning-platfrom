@@ -30,6 +30,8 @@ namespace ElCentre.Infrastructure.Repositories
         public ICourseRepository CourseRepository { get; }
         public ICourseModuleRepository CourseModuleRepository { get; }
         public ILessonRepository LessonRepository { get; }
+        public IEnrollmentRepository EnrollmentRepository { get; }
+        public ICourseReviewRepository CourseReviewRepository { get; }
 
         public UnitofWork(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IMapper mapper, ElCentreDbContext context, IGenerateToken generateToken, IEmailService emailService, ICourseThumbnailService courseThumbnailService, IVideoService videoService)
         {
@@ -49,6 +51,8 @@ namespace ElCentre.Infrastructure.Repositories
             CourseRepository = new CourseRepository(_courseThumbnailService, _mapper, _context);
             CourseModuleRepository = new CourseModuleRepository(_context);
             LessonRepository = new LessonRepository(_context, _videoService);
+            EnrollmentRepository = new EnrollmentRepository(_context,_mapper);
+            CourseReviewRepository = new CourseReviewRepository(_context);
         }
 
     }

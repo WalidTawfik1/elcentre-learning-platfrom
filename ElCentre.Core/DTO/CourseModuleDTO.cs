@@ -28,4 +28,24 @@ namespace ElCentre.Core.DTO
 
         public bool IsPublished { get; set; } = true;
     }
+
+    // If wanted to include Lessons in the CourseModuleDTO, uncomment the following code
+    /*public class CourseModuleDTO
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public bool IsPublished { get; set; }
+        public List<LessonsDTO> Lessons { get; set; }
+    }
+
+    public class LessonsDTO
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public int OrderIndex { get; set; }
+        public int DurationInMinutes { get; set; }
+
+    }*/
+
 }

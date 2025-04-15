@@ -21,6 +21,7 @@ namespace ElCentre.Infrastructure.Data
         public DbSet<CourseReview> CourseReviews { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<OtpVerification> OtpVerifications { get; set; }
+        public DbSet<CompletedLesson> CompletedLessons { get; set; }
 
         public ElCentreDbContext(DbContextOptions<ElCentreDbContext> options) : base(options)
         {
@@ -91,7 +92,7 @@ namespace ElCentre.Infrastructure.Data
             modelBuilder.Entity<CourseReview>()
                 .HasOne(r => r.Course)
                 .WithMany(c => c.Reviews)
-                .HasForeignKey(r => r.CourseId);
+                .HasForeignKey(r => r.CourseId);                
 
 
         }
