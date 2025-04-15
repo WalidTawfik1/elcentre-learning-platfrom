@@ -77,6 +77,8 @@ namespace ElCentre.Infrastructure
             }).AddCookie(c =>
             {
                 c.Cookie.Name = "token";
+                c.Cookie.SecurePolicy = CookieSecurePolicy.None;
+                c.Cookie.SameSite = SameSiteMode.Lax;
                 c.Events.OnRedirectToLogin = context =>
                 {
                     context.Response.StatusCode = StatusCodes.Status401Unauthorized;

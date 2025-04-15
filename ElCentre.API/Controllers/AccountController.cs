@@ -62,8 +62,8 @@ namespace ElCentre.API.Controllers
             Response.Cookies.Append("token", result, new CookieOptions
             {
                 HttpOnly = true,
-                SameSite = SameSiteMode.Strict,
-                Secure = true,
+                SameSite = SameSiteMode.Lax,
+                Secure = false,
                 IsEssential = true,
                 Expires = DateTime.Now.AddDays(7)
             });
