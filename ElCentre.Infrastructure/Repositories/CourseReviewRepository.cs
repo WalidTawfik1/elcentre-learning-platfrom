@@ -94,7 +94,7 @@ namespace ElCentre.Infrastructure.Repositories
             {
                 StudentId = m.UserId,
                 Id = m.Id,
-                StudentName = $"{m.User.FirstName} +{m.User.LastName}",
+                StudentName = m.User.FirstName + " " + m.User.LastName,
                 Rating = (int)m.Rating,
                 ReviewContent = m.ReviewContent,
                 CreatedAt = m.CreatedAt
