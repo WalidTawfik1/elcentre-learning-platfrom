@@ -71,7 +71,7 @@ namespace ElCentre.API.Controllers
         /// <returns></returns>
         [Authorize(Roles = "Admin,Instructor")]
         [HttpPost("add-course")]
-        public async Task<IActionResult> AddCourse(AddCourseDTO addCourseDTO)
+        public async Task<IActionResult> AddCourse([FromForm] AddCourseDTO addCourseDTO)
         {
             var InstructorId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
             try
@@ -102,7 +102,7 @@ namespace ElCentre.API.Controllers
         /// <returns></returns>
         [Authorize(Roles = "Admin,Instructor")]
         [HttpPut("update-course")]
-        public async Task<IActionResult> UpdateCourse(UpdateCourseDTO updateCourseDTO)
+        public async Task<IActionResult> UpdateCourse([FromForm] UpdateCourseDTO updateCourseDTO)
         {
             try
             {
