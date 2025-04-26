@@ -17,6 +17,8 @@ namespace ElCentre.Core.Interfaces
         Task<bool> IsLessonCompletedAsync(int lessonId, string studentId);
         Task<List<int>> GetCompletedLessonIdsAsync(string studentId, int courseId);
         Task<float> CalculateAndUpdateProgressAsync(int enrollmentId);
+        Task<List<EnrollmentDTO>> GetCourseEnrollmentsAsync(int courseId);
+        Task<int> GetStudentsCount(int courseId);
 
     }
 }

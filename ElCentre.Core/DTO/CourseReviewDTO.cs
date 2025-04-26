@@ -21,6 +21,7 @@ namespace ElCentre.Core.DTO
         public int Rating { get; set; }
         public string? ReviewContent { get; set; }
         public DateTime CreatedAt { get; set; }
+        public int Count { get; set; }
     }
 
     public class UpdateReviewDTO

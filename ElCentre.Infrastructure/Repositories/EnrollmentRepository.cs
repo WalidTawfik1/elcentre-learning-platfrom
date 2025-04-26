@@ -179,5 +179,29 @@ namespace ElCentre.Infrastructure.Repositories
             return result;
 
         }
+
+        public async Task<List<EnrollmentDTO>> GetCourseEnrollmentsAsync(int courseId)
+        {
+            if (courseId <= 0)
+                return null;
+            var enrollments = await _context.Enrollments
+                .Where(e => e.CourseId == courseId)
+                .Include(e => e.Course)
+                .ToListAsync();
+            if (enrollments == null)
+                return null;
+            var result = _mapper.Map<List<EnrollmentDTO>>(enrollments);
+            return result;
+        }
+
+        public async Task<int> GetStudentsCount(int courseId)
+        {
+            if (courseId <= 0)
+                return 0;
+            var count = await _context.Enrollments
+                .Where(e => e.CourseId == courseId)
+                .CountAsync();
+            return count;
+        }
     }
 }

@@ -97,7 +97,9 @@ namespace ElCentre.Infrastructure.Repositories
                 StudentName = m.User.FirstName + " " + m.User.LastName,
                 Rating = (int)m.Rating,
                 ReviewContent = m.ReviewContent,
-                CreatedAt = m.CreatedAt
+                CreatedAt = m.CreatedAt,
+                Count = ratings.Count
+
             }).ToList();
         }
 

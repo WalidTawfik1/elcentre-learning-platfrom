@@ -52,11 +52,11 @@ namespace ElCentre.API.Controllers
         }
 
         /// <summary>
-        /// Get enrollment by ID
+        /// Get enrollment by ID for Admin
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Instructor")]
         [HttpGet("get-enrollment/{id}")]
         public async Task<IActionResult> GetEnrollment(int id)
         {
@@ -76,17 +76,17 @@ namespace ElCentre.API.Controllers
         }
 
         /// <summary>
-        /// Get all course enrollments
+        /// Get all course enrollments for instructor
         /// </summary>
         /// <param name="courseId"></param>
         /// <returns></returns>
-        [Authorize(Roles = "Admin,Instructor")]
+        [Authorize(Roles = "Instructor")]
         [HttpGet("get-course-enrollments")]
         public async Task<IActionResult> GetCourseEnrollments(int courseId)
         {
             try
             {
-                var enrollments = await work.EnrollmentRepository.GetAllAsync(x => x.CourseId == courseId);
+                var enrollments = await work.EnrollmentRepository.GetCourseEnrollmentsAsync(courseId);
                 if (enrollments == null)
                 {
                     return BadRequest(new APIResponse(400, "This Course Not Found"));
@@ -215,6 +215,28 @@ namespace ElCentre.API.Controllers
 
                 var progress = await work.EnrollmentRepository.CalculateAndUpdateProgressAsync(enrollmentId);
                 return Ok(new { progress });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Get the count of students enrolled in a course
+        /// </summary>
+        /// <param name="courseId"></param>
+        /// <returns></returns>
+        [AllowAnonymous]
+        [HttpGet("students-count/{courseId}")]
+        public async Task<IActionResult> GetStudentsCount(int courseId)
+        {
+            try
+            {
+                if (courseId <= 0)
+                    return BadRequest(new APIResponse(400, "Invalid course ID"));
+                var count = await work.EnrollmentRepository.GetStudentsCount(courseId);
+                return Ok(count);
             }
             catch (Exception ex)
             {
