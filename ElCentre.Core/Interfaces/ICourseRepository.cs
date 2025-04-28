@@ -12,8 +12,9 @@ namespace ElCentre.Core.Interfaces
     public interface ICourseRepository: IGenericRepository<Course>
     {
         Task<bool> AddAsync(AddCourseDTO addCourseDTO, string InstructorId);
-        Task<bool> UpdateAsync(UpdateCourseDTO updateCourseDTO);
-        Task DeleteAsync(Course course);
+        Task<bool> UpdateAsync(UpdateCourseDTO updateCourseDTO, string InstructorId);
+        Task<bool> DeleteAsync(int courseId, string InstructorId);
         Task<IEnumerable<CourseDTO>> GetAllAsync(CourseParams courseParams);
+        Task<IEnumerable<CourseDTO>> GetAllbyInstructorIdAsync(string InstructorId);
     }
 }

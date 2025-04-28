@@ -10,9 +10,9 @@ namespace ElCentre.Core.Interfaces
 {
     public interface ICourseModuleRepository : IGenericRepository<CourseModule>
     {
-        Task<bool> UpdateCourseModuleAsync(CourseModule courseModule);
-        Task<CourseModule> AddWithOrderIndexAsync(CourseModule courseModule);
-        Task DeleteAndReorderAsync(int id);
+        Task<bool> UpdateCourseModuleAsync(CourseModule courseModule, string instructorId);
+        Task<CourseModule> AddWithOrderIndexAsync(CourseModule courseModule, string instructorId);
+        Task<bool> DeleteAndReorderAsync(int id,string instructorId);
         Task<IReadOnlyList<CourseModule>> GetModulesByCourseIdAsync(int courseId);
     }
 }

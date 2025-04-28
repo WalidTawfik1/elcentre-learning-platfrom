@@ -10,9 +10,9 @@ namespace ElCentre.Core.Interfaces
 {
     public interface ILessonRepository : IGenericRepository<Lesson>
     {
-        Task<Lesson> AddWithOrderIndexAsync(Lesson entity, IFormFile content);
-        Task<bool> UpdateLessonAsync(Lesson lesson, IFormFile content);
-        Task DeleteAndReorderAsync(int id);
+        Task<Lesson> AddWithOrderIndexAsync(Lesson entity, IFormFile content, string instructorId);
+        Task<bool> UpdateLessonAsync(Lesson lesson, IFormFile content, string instructorId);
+        Task<bool> DeleteAndReorderAsync(int id,string instructorId);
         Task<IReadOnlyList<Lesson>> GetLessonsByModuleIdAsync(int moduleId);
     }
 }

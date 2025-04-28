@@ -37,6 +37,31 @@ namespace ElCentre.API.Controllers
         }
 
         /// <summary>
+        /// Get all instructor courses
+        /// </summary>
+        /// <returns></returns>
+        [Authorize(Roles = "Instructor")]
+        [HttpGet("get-all-instructor-courses")]
+        public async Task<IActionResult> GetAllInstructorCourses()
+        {
+            try
+            {
+                var InstructorId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                if (InstructorId == null)
+                {
+                    return BadRequest(new APIResponse(400, "Sign in first as instructor "));
+                }
+
+                var courses = await work.CourseRepository.GetAllbyInstructorIdAsync(InstructorId);
+                return Ok(courses);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
         /// Get course by id
         /// </summary>
         /// <param name="id"></param>
@@ -106,12 +131,21 @@ namespace ElCentre.API.Controllers
         {
             try
             {
+                var InstructorId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                if (InstructorId == null)
+                {
+                    return BadRequest(new APIResponse(400, "Sign in first as instructor "));
+                }
                 if (updateCourseDTO == null)
                 {
                     return BadRequest(new APIResponse(400, "Please Fill All Fields"));
                 }
-                    await work.CourseRepository.UpdateAsync(updateCourseDTO);
-                    return Ok(new APIResponse(200, "Course updated successfully"));
+                var result = await work.CourseRepository.UpdateAsync(updateCourseDTO,InstructorId);
+                if (!result)
+                {
+                    return BadRequest(new APIResponse(400, "Course not found or you don't have a permission to update this course"));
+                }
+                return Ok(new APIResponse(200, "Course updated successfully"));
             }
             catch (Exception ex)
             {
@@ -130,9 +164,16 @@ namespace ElCentre.API.Controllers
         {
             try
             {
-                var course = await work.CourseRepository
-                    .GetByIdAsync(id, x => x.Category);
-                await work.CourseRepository.DeleteAsync(course);
+                var InstructorId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                if (InstructorId == null)
+                {
+                    return BadRequest(new APIResponse(400, "Sign in first as instructor "));
+                }
+                var result = await work.CourseRepository.DeleteAsync(id,InstructorId);
+                if (!result)
+                {
+                    return BadRequest(new APIResponse(400, "Course not found or you don't have a permission to delete this course"));
+                }
                 return Ok(new APIResponse(200, "Course deleted successfully"));
             }
             catch (Exception ex)

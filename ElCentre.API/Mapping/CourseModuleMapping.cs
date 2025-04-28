@@ -23,6 +23,19 @@ namespace ElCentre.API.Mapping
                .ForMember(dest => dest.Lessons, opt => opt.MapFrom(src => src.Lessons));
 
             CreateMap<Lesson, LessonsDTO>();*/
+
+            //// Map Course entity to CourseDto
+            //CreateMap<Course, CourseDto>()
+            //    .ForMember(dest => dest.Instructor, opt => opt.MapFrom(src => src.Instructor));
+
+            //// Map AppUser entity to UserDto
+            //CreateMap<AppUser, UserDto>()
+            //    .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
+
+            //// Complete mapping from CourseModule to CourseModuleDTO with nested objects
+            //CreateMap<CourseModule, CourseModuleDTO>()
+            //    .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course));
+
         }
     }
 }

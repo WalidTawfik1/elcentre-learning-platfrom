@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace ElCentre.API.Controllers
@@ -84,10 +85,20 @@ namespace ElCentre.API.Controllers
         {
             try
             {
+                var InstructorId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                if (InstructorId == null)
+                {
+                    return BadRequest(new APIResponse(400, "Sign in first as instructor "));
+                }
                 var lesson = mapper.Map<Lesson>(addLessonDto);
 
                 // Content is handled in the repository
-                await work.LessonRepository.AddWithOrderIndexAsync(lesson, addLessonDto.Content);
+                var result = await work.LessonRepository.AddWithOrderIndexAsync(lesson, addLessonDto.Content,InstructorId);
+
+                if (result == null)
+                {
+                    return BadRequest(new APIResponse(400, "Failed to add lesson, you may don't have permission to add it"));
+                }
 
                 return Ok(new APIResponse(200, "Lesson added successfully"));
             }
@@ -108,6 +119,11 @@ namespace ElCentre.API.Controllers
         {
             try
             {
+                var InstructorId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                if (InstructorId == null)
+                {
+                    return BadRequest(new APIResponse(400, "Sign in first as instructor "));
+                }
                 var lesson = mapper.Map<Lesson>(updateLessonDto);
 
                 // Get the existing lesson to preserve ModuleId
@@ -120,14 +136,14 @@ namespace ElCentre.API.Controllers
                 // Preserve the ModuleId from the database
                 lesson.ModuleId = existingLesson.ModuleId;
 
-                var result = await work.LessonRepository.UpdateLessonAsync(lesson, updateLessonDto.Content);
+                var result = await work.LessonRepository.UpdateLessonAsync(lesson, updateLessonDto.Content, InstructorId);
 
                 if (result)
                 {
                     return Ok(new APIResponse(200, "Lesson updated successfully"));
                 }
 
-                return BadRequest(new APIResponse(400, "Failed to update lesson."));
+                return BadRequest(new APIResponse(400, "Lesson not found or you don't have permission to update it."));
             }
             catch (Exception ex)
             {
@@ -146,7 +162,16 @@ namespace ElCentre.API.Controllers
         {
             try
             {
-                await work.LessonRepository.DeleteAndReorderAsync(id);
+                var InstructorId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                if (InstructorId == null)
+                {
+                    return BadRequest(new APIResponse(400, "Sign in first as instructor "));
+                }
+               var result = await work.LessonRepository.DeleteAndReorderAsync(id,InstructorId);
+                if (!result)
+                {
+                    return NotFound(new APIResponse(404, "Lesson not found or you don't have permission to delete it"));
+                }
                 return Ok(new APIResponse(200, "Lesson deleted successfully and lesson order updated"));
             }
             catch (Exception ex)

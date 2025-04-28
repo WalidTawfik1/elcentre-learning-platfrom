@@ -23,8 +23,15 @@ namespace ElCentre.Infrastructure.Repositories
             _videoService = videoService;
         }
 
-        public async Task<Lesson> AddWithOrderIndexAsync(Lesson entity, IFormFile content)
+        public async Task<Lesson> AddWithOrderIndexAsync(Lesson entity, IFormFile content, string instructorId)
         {
+            // Check if the module exists and belongs to the instructor
+            var module = await _context.CourseModules
+                .Include(m => m.Course)
+                .FirstOrDefaultAsync(m => m.Id == entity.ModuleId && m.Course.InstructorId == instructorId);
+            if (module == null)
+                return null;
+
             // Get the highest OrderIndex for the specified module
             var maxOrderIndex = await _context.Lessons
                 .Where(l => l.ModuleId == entity.ModuleId)
@@ -56,12 +63,14 @@ namespace ElCentre.Infrastructure.Repositories
             return entity;
         }
 
-        public async Task DeleteAndReorderAsync(int id)
+        public async Task<bool> DeleteAndReorderAsync(int id, string instructorId)
         {
             // Get the lesson to be deleted
-            var lessonToDelete = await _context.Lessons.FindAsync(id);
+            var lessonToDelete = await _context.Lessons
+                .Where(l => l.Module.Course.InstructorId == instructorId)
+                .FirstOrDefaultAsync(l =>l.Id == id);
             if (lessonToDelete == null)
-                return;
+                return false;
 
             int moduleId = lessonToDelete.ModuleId;
             int deletedOrderIndex = lessonToDelete.OrderIndex;
@@ -102,6 +111,7 @@ namespace ElCentre.Infrastructure.Repositories
 
             // Save changes to the database
             await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<IReadOnlyList<Lesson>> GetLessonsByModuleIdAsync(int moduleId)
@@ -112,12 +122,21 @@ namespace ElCentre.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<bool> UpdateLessonAsync(Lesson lesson, IFormFile content)
+        public async Task<bool> UpdateLessonAsync(Lesson lesson, IFormFile content, string instructorId)
         {
             try
             {
+                // Check if the module exists and belongs to the instructor
+                var module = await _context.CourseModules
+                    .Include(m => m.Course)
+                    .FirstOrDefaultAsync(m => m.Id == lesson.ModuleId && m.Course.InstructorId == instructorId);
+
+                if (module == null) 
+                    return false;
+
                 // Get the existing lesson
-                var existingLesson = await _context.Lessons.FindAsync(lesson.Id);
+                var existingLesson = await _context.Lessons
+                .FirstOrDefaultAsync(l => l.Id == lesson.Id);
                 if (existingLesson == null)
                     return false;
 

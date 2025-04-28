@@ -6,6 +6,7 @@ using ElCentre.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ElCentre.API.Controllers
 {
@@ -78,8 +79,20 @@ namespace ElCentre.API.Controllers
         {
             try
             {
+                var InstructorId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                if (InstructorId == null)
+                {
+                    return BadRequest(new APIResponse(400, "Sign in first as instructor "));
+                }
+
                 var courseModule = mapper.Map<CourseModule>(addCourseModule);
-                await work.CourseModuleRepository.AddWithOrderIndexAsync(courseModule);
+                var result = await work.CourseModuleRepository.AddWithOrderIndexAsync(courseModule, InstructorId);
+
+                if (result == null)
+                {
+                    return BadRequest(new APIResponse(400, "Course not found or you don't have permission to add modules to this course"));
+                }
+
                 return Ok(new APIResponse(200, "Course module added successfully"));
             }
             catch (Exception ex)
@@ -87,6 +100,7 @@ namespace ElCentre.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
 
         /// <summary>
         /// Update Course Module
@@ -99,13 +113,18 @@ namespace ElCentre.API.Controllers
         {
             try
             {
+                var InstructorId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                if (InstructorId == null)
+                {
+                    return BadRequest(new APIResponse(400, "Sign in first as instructor "));
+                }
                 var courseModule = mapper.Map<CourseModule>(updateCourseModule);
-                var result = await work.CourseModuleRepository.UpdateCourseModuleAsync(courseModule);
+                var result = await work.CourseModuleRepository.UpdateCourseModuleAsync(courseModule, InstructorId);
 
                 if (result)
                     return Ok(new APIResponse(200, "Course module updated successfully"));
                 else
-                    return NotFound(new APIResponse(404, "Course module not found or could not be updated"));
+                    return NotFound(new APIResponse(404, "Course module not found or you don't have permission to update it"));
             }
             catch (Exception ex)
             {
@@ -124,14 +143,29 @@ namespace ElCentre.API.Controllers
         {
             try
             {
-                await work.CourseModuleRepository.DeleteAndReorderAsync(id);
-                return Ok(new APIResponse(200, "Course module deleted successfully"));
+                var InstructorId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                if (InstructorId == null)
+                {
+                    return BadRequest(new APIResponse(400, "Sign in first as instructor"));
+                }
+
+                var result = await work.CourseModuleRepository.DeleteAndReorderAsync(id, InstructorId);
+
+                if (result)
+                {
+                    return Ok(new APIResponse(200, "Course module deleted successfully"));
+                }
+                else
+                {
+                    return NotFound(new APIResponse(404, "Course module not found or you don't have permission to delete it"));
+                }
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
+
 
     }
 }

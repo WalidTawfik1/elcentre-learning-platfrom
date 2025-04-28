@@ -1,4 +1,6 @@
-﻿using ElCentre.Core.Entities;
+﻿using AutoMapper;
+using ElCentre.Core.DTO;
+using ElCentre.Core.Entities;
 using ElCentre.Core.Interfaces;
 using ElCentre.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -13,15 +15,24 @@ namespace ElCentre.Infrastructure.Repositories
     public class CourseModuleRepository : GenericRepository<CourseModule>, ICourseModuleRepository
     {
         private readonly ElCentreDbContext _context;
+        private readonly IMapper _mapper;
 
-        public CourseModuleRepository(ElCentreDbContext context) : base(context)
+        public CourseModuleRepository(ElCentreDbContext context, IMapper mapper) : base(context)
         {
             _context = context;
+            _mapper = mapper;
         }
 
 
-        public async Task<CourseModule> AddWithOrderIndexAsync(CourseModule entity)
+        public async Task<CourseModule> AddWithOrderIndexAsync(CourseModule entity, string instructorId)
         {
+            // Check if the course exists and belongs to the instructor
+            var validCourse = await _context.Courses
+                .FirstOrDefaultAsync(c => c.Id == entity.CourseId && c.InstructorId == instructorId);
+
+            if (validCourse == null)
+                return null;
+
             // Get the highest OrderIndex for the specified course
             var maxOrderIndex = await _context.CourseModules
                 .Where(m => m.CourseId == entity.CourseId)
@@ -36,12 +47,14 @@ namespace ElCentre.Infrastructure.Repositories
             return entity;
         }
 
-        public async Task DeleteAndReorderAsync(int id)
+        public async Task<bool> DeleteAndReorderAsync(int id, string instructorId)
         {
             // Get the module to be deleted
-            var moduleToDelete = await _context.CourseModules.FindAsync(id);
+            var moduleToDelete = await _context.CourseModules
+                .Where(m => m.Course.InstructorId == instructorId)
+                .FirstOrDefaultAsync(m => m.Id == id);
             if (moduleToDelete == null)
-                return;
+                return false; // Module not found or instructor doesn't own it
 
             int courseId = moduleToDelete.CourseId;
             int deletedOrderIndex = moduleToDelete.OrderIndex;
@@ -62,7 +75,9 @@ namespace ElCentre.Infrastructure.Repositories
 
             // Save changes to the database
             await _context.SaveChangesAsync();
+            return true; // Deletion successful
         }
+
         public async Task<IReadOnlyList<CourseModule>> GetModulesByCourseIdAsync(int courseId)
         {
             return await _context.CourseModules
@@ -70,12 +85,15 @@ namespace ElCentre.Infrastructure.Repositories
                 .OrderBy(m => m.OrderIndex)
                 .ToListAsync();
         }
-        public async Task<bool> UpdateCourseModuleAsync(CourseModule courseModule)
+
+        public async Task<bool> UpdateCourseModuleAsync(CourseModule courseModule, string instructorId)
         {
             try
             {
                 // Get the existing module with its current CourseId
-                var existingModule = await _context.CourseModules.FindAsync(courseModule.Id);
+                var existingModule = await _context.CourseModules
+                    .Where(m => m.Course.InstructorId == instructorId)
+                    .FirstOrDefaultAsync(m => m.Id == courseModule.Id);
                 if (existingModule == null)
                     return false;
 

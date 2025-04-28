@@ -49,7 +49,7 @@ namespace ElCentre.Infrastructure.Repositories
             CategoryRepository = new CategoryRepository(_context);
             UserRepository = new UserRepository(_context, _mapper);
             CourseRepository = new CourseRepository(_courseThumbnailService, _mapper, _context);
-            CourseModuleRepository = new CourseModuleRepository(_context);
+            CourseModuleRepository = new CourseModuleRepository(_context,_mapper);
             LessonRepository = new LessonRepository(_context, _videoService);
             EnrollmentRepository = new EnrollmentRepository(_context,_mapper);
             CourseReviewRepository = new CourseReviewRepository(_context);

@@ -63,11 +63,21 @@ namespace ElCentre.Infrastructure.Repositories
         }
 
 
-        public async Task DeleteAsync(Course course)
+        public async Task<bool> DeleteAsync(int courseId, string InstructorId)
         {
+            var course = await context.Courses
+                .Include(c => c.Category)
+                .Include(c => c.Instructor)
+                .Include(c => c.Modules)
+                .Where(c => c.InstructorId == InstructorId)
+                .FirstOrDefaultAsync(c => c.Id == courseId);
+
+            if (course == null) return false;
+
             courseThumbnailService.DeleteImageAsync(course.Thumbnail);
             context.Courses.Remove(course);
             await context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<IEnumerable<CourseDTO>> GetAllAsync(CourseParams courseParams)
@@ -127,13 +137,27 @@ namespace ElCentre.Infrastructure.Repositories
 
         }
 
-        public async Task<bool> UpdateAsync(UpdateCourseDTO updateCourseDTO)
+        public async Task<IEnumerable<CourseDTO>> GetAllbyInstructorIdAsync(string InstructorId)
+        {
+            var courses = context.Courses
+                .Include(c => c.Category)
+                .Include(c => c.Instructor)
+                .Include(c => c.Modules)
+                .Include(c => c.Reviews).ThenInclude(r => r.User)
+                .Where(c => c.InstructorId == InstructorId)
+                .AsNoTracking();
+            var result = mapper.Map<List<CourseDTO>>(courses);
+            return result;
+        }
+
+        public async Task<bool> UpdateAsync(UpdateCourseDTO updateCourseDTO, string InstructorId)
         {
             if(updateCourseDTO == null) return false;
             var course = await context.Courses
                 .Include(c => c.Category)
                 .Include(c => c.Instructor)
                 .Include(c => c.Modules)
+                .Where(c => c.InstructorId == InstructorId)
                 .FirstOrDefaultAsync(c => c.Id == updateCourseDTO.Id);
             if (course == null) return false;
             mapper.Map(updateCourseDTO, course);

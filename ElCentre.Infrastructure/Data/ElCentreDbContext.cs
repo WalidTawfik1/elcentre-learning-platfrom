@@ -37,37 +37,48 @@ namespace ElCentre.Infrastructure.Data
                 .HasOne(c => c.Instructor)
                 .WithMany(u => u.CreatedCourses)
                 .HasForeignKey(c => c.InstructorId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Course has one category
             modelBuilder.Entity<Course>()
                 .HasOne(c => c.Category)
                 .WithMany(cat => cat.Courses)
-                .HasForeignKey(c => c.CategoryId);
+                .HasForeignKey(c => c.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Course has many modules
             modelBuilder.Entity<CourseModule>()
                 .HasOne(m => m.Course)
                 .WithMany(c => c.Modules)
-                .HasForeignKey(m => m.CourseId);
+                .HasForeignKey(m => m.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
 
             // Module has many lessons
             modelBuilder.Entity<Lesson>()
                 .HasOne(l => l.Module)
                 .WithMany(m => m.Lessons)
-                .HasForeignKey(l => l.ModuleId);
+                .HasForeignKey(l => l.ModuleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
 
             // User has many enrollments
             modelBuilder.Entity<Enrollment>()
                 .HasOne(e => e.Student)
                 .WithMany(u => u.Enrollments)
-                   .HasForeignKey(e => e.StudentId);
+                .HasForeignKey(e => e.StudentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
 
             // Course has many enrollments
             modelBuilder.Entity<Enrollment>()
                 .HasOne(e => e.Course)
                 .WithMany(c => c.Enrollments)
-                .HasForeignKey(e => e.CourseId);
+                .HasForeignKey(e => e.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
 
             // User has many payments
             modelBuilder.Entity<Payment>()
@@ -88,11 +99,14 @@ namespace ElCentre.Infrastructure.Data
                 .WithMany(u => u.CourseReviews)
                 .HasForeignKey(r => r.UserId);
 
+
             // Course has many reviews
             modelBuilder.Entity<CourseReview>()
                 .HasOne(r => r.Course)
                 .WithMany(c => c.Reviews)
-                .HasForeignKey(r => r.CourseId);                
+                .HasForeignKey(r => r.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
 
 
         }

@@ -46,6 +46,8 @@ namespace ElCentre.Core.DTO
 
         public double Rating { get; set; }
 
+        public string InstructorId { get; set; }
+
         public string InstructorName { get; set; }
 
         public string CategoryName { get; set; }
