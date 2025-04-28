@@ -1,4 +1,5 @@
 
+using DotNetEnv;
 using ElCentre.API.Middlewares;
 using ElCentre.Infrastructure;
 using System.Reflection;
@@ -9,6 +10,7 @@ namespace ElCentre.API
     {
         public static void Main(string[] args)
         {
+            Env.Load(); // Load environment variables from .env file
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.

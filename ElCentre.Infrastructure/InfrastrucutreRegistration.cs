@@ -27,6 +27,9 @@ namespace ElCentre.Infrastructure
     {
         public static IServiceCollection InfrastructureConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
+            // Load environment variables from .env file
+            DotNetEnv.Env.Load(); // Ensure DotNetEnv package is installed and properly referenced
+
             // Register IUnitofWork service
             services.AddScoped<IUnitofWork, UnitofWork>();
 
@@ -111,7 +114,6 @@ namespace ElCentre.Infrastructure
 
             return services;
         }
-
     }
     
 }
