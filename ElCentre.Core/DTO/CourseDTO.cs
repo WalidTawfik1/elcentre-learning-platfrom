@@ -50,6 +50,8 @@ namespace ElCentre.Core.DTO
 
         public string InstructorName { get; set; }
 
+        public int CategoryId { get; set; }
+
         public string CategoryName { get; set; }
     }
    
