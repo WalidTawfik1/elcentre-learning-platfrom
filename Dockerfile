@@ -6,22 +6,25 @@ ENV ASPNETCORE_URLS=http://+:8080
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy project files
+# Copy only the necessary project files
 COPY ["src/ElCentreAPI/ElCentreAPI.csproj", "src/ElCentreAPI/"]
 COPY ["src/ElCentre.Core/ElCentre.Core.csproj", "src/ElCentre.Core/"]
 COPY ["src/ElCentre.Infrastructure/ElCentre.Infrastructure.csproj", "src/ElCentre.Infrastructure/"]
 
-# Restore dependencies
-RUN dotnet restore "src/ElCentreAPI/ElCentreAPI.csproj"
+# Set the working directory to ElCentreAPI for restore
+WORKDIR /src/src/ElCentreAPI
+RUN dotnet restore "ElCentreAPI.csproj"
 
-# Copy everything else
+# Copy the rest of the source code
+WORKDIR /src
 COPY . .
 
-# Build the application
-WORKDIR "/src/src/ElCentreAPI"
+# Build
+WORKDIR /src/src/ElCentreAPI
 RUN dotnet build "ElCentreAPI.csproj" -c Release -o /app/build
 
 FROM build AS publish
+WORKDIR /src/src/ElCentreAPI
 RUN dotnet publish "ElCentreAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
