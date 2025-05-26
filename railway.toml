@@ -1,0 +1,5 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "dotnet run --project src/ElCentreAPI --urls http://0.0.0.0:$PORT"
