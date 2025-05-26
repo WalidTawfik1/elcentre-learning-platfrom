@@ -37,7 +37,7 @@ namespace ElCentre.Infrastructure.Data
                 .HasOne(c => c.Instructor)
                 .WithMany(u => u.CreatedCourses)
                 .HasForeignKey(c => c.InstructorId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Course has one category
             modelBuilder.Entity<Course>()

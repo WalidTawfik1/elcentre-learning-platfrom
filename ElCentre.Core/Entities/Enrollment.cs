@@ -17,6 +17,8 @@ namespace ElCentre.Core.Entities
 
         public string Status { get; set; } = "Active";
 
+        public string PaymentStatus { get; set; } = "Pending";
+
         public DateTime? CompletionDate { get; set; }
 
         public float Progress { get; set; } = 0;

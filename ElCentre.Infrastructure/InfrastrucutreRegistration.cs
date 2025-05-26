@@ -20,6 +20,7 @@ using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
+using X.Paymob.CashIn;
 
 namespace ElCentre.Infrastructure
 {
@@ -53,6 +54,16 @@ namespace ElCentre.Infrastructure
 
             // Register AddHttpContextAccessor to get user info
             services.AddHttpContextAccessor();
+
+            // Register the Paymob service
+            services.AddPaymobCashIn(options =>
+            {
+                options.ApiKey = configuration["Paymob:ApiKey"];
+                options.Hmac = configuration["Paymob:HMAC"];
+            });
+
+            // Register the IPaymob service
+            services.AddScoped<IPaymobService, PaymobService>();
 
             // Register AppDbContext with SQL Server
             services.AddDbContext<ElCentreDbContext>((options) =>
@@ -110,6 +121,12 @@ namespace ElCentre.Infrastructure
                         return Task.CompletedTask;
                     }
                 };
+            }).AddGoogle(googleOptions =>
+            {
+               googleOptions.ClientId = configuration["Authentication:Google:ClientId"];
+               googleOptions.ClientSecret = configuration["Authentication:Google:ClientSecret"];
+               googleOptions.CallbackPath = "/signin-google";
+               googleOptions.SaveTokens = true;
             });
 
             return services;

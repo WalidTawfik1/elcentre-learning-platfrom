@@ -22,14 +22,14 @@ namespace ElCentre.Infrastructure.Repositories
             _mapper = mapper;
         }
 
-        public async Task<bool> AddEnrollmentAsync(int courseId, string studentId)
+        public async Task<Enrollment> AddEnrollmentAsync(int courseId, string studentId)
         {
             if (courseId <= 0 || string.IsNullOrEmpty(studentId))
-                return false;
+                return null;
 
             var alreadyEnrolled = await IsStudentEnrolledInCourseAsync(studentId, courseId);
             if (alreadyEnrolled)
-                return false;
+                return null;
 
             var enrollment = new Enrollment
             {
@@ -40,7 +40,7 @@ namespace ElCentre.Infrastructure.Repositories
                 Progress = 0
             };
             await base.AddAsync(enrollment);
-            return true;
+            return enrollment;
         }
 
         public async Task<bool> IsStudentEnrolledInCourseAsync(string studentId, int courseId)

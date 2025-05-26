@@ -10,7 +10,7 @@ namespace ElCentre.Core.Interfaces
 {
     public interface IEnrollmentRepository: IGenericRepository<Enrollment>
     {
-        Task<bool> AddEnrollmentAsync(int courseId, string studentId);
+        Task<Enrollment> AddEnrollmentAsync(int courseId, string studentId);
         Task<bool> IsStudentEnrolledInCourseAsync(string studentId, int courseId);
         Task <List<EnrollmentDTO>> GetStudentEnrollments(string studentId);
         Task<bool> MarkLessonAsCompletedAsync(int lessonId, string studentId);

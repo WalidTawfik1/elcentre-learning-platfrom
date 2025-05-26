@@ -29,7 +29,7 @@ namespace ElCentre.API.Controllers
                 return BadRequest("Invalid course ID.");
             var studentId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
             var result = await work.EnrollmentRepository.AddEnrollmentAsync(courseId, studentId);
-            if (result)
+            if (result != null)
                 return Ok("Student enrolled successfully.");
             return BadRequest("Failed to enroll student.");
         }
