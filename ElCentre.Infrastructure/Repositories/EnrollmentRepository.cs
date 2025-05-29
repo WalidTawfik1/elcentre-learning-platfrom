@@ -48,7 +48,7 @@ namespace ElCentre.Infrastructure.Repositories
             if (string.IsNullOrEmpty(studentId) || courseId <= 0)
                 return false;
             var enrollment = await _context.Enrollments
-                .Where(x => x.CourseId == courseId && x.StudentId == studentId)
+                .Where(x => x.CourseId == courseId && x.StudentId == studentId && x.PaymentStatus == "Success")
                 .FirstOrDefaultAsync();
             return enrollment != null;
         }

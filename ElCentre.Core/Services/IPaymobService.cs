@@ -9,11 +9,11 @@ namespace ElCentre.Core.Services
 {
     public interface IPaymobService
     {
-        Task<(Enrollment Enrollment, string RedirectUrl)> ProcessPaymentForOrderAsync(int enrollmentId, string paymentMethod);
+        Task<(Enrollment Enrollment, string RedirectUrl)> ProcessPaymentForCardAsync(int enrollmentId);
+        Task<(Enrollment Enrollment, string RedirectUrl)> ProcessPaymentForWalletAsync(int enrollmentId);
         string GetPaymentIframeUrl(string paymentToken);
-        string GetMobileWalletPaymentUrl(string paymentToken, string phoneNumber);
-        Task<Enrollment> UpdateOrderSuccess(string paymentIntentId);
-        Task<Enrollment> UpdateOrderFailed(string paymentIntentId);
+        Task<Enrollment> UpdateOrderSuccess(string specialReference);
+        Task<Enrollment> UpdateOrderFailed(string specialReference);
         string ComputeHmacSHA512(string data, string secret);
     }
 

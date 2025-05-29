@@ -9,8 +9,11 @@ using Org.BouncyCastle.Crypto.Macs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using X.Paymob.CashIn;
 using X.Paymob.CashIn.Models.Orders;
@@ -70,7 +73,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
             return iframeUrl;
         }
 
-        public async Task<(Enrollment Enrollment, string RedirectUrl)> ProcessPaymentForOrderAsync(int enrollmentId, string paymentMethod)
+        public async Task<(Enrollment Enrollment, string RedirectUrl)> ProcessPaymentForCardAsync(int enrollmentId)
         {
             var enrollment = await _context.Enrollments
                 .Include(e => e.Payments)
@@ -105,7 +108,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
                 country: "Egypt"
             );
 
-            var integrationId = int.Parse(DetermineIntegrationId(paymentMethod));
+            var integrationId = int.Parse(_configuration["Paymob:CardIntegrationId"] ?? throw new ArgumentException ("Card integration ID not configured"));
 
             var paymentKeyRequest = new CashInPaymentKeyRequest
             (
@@ -123,7 +126,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
             var payment = new Payment
             {
                 Amount = enrollment.Course.Price,
-                PaymentMethod = paymentMethod,
+                PaymentMethod = "Card",
                 Status = "Pending",
                 TransactionId = orderResponse.Id.ToString(),
                 EnrollmentId = enrollment.Id,
@@ -135,40 +138,11 @@ namespace ElCentre.Infrastructure.Repositories.Services
             enrollment.PaymentStatus = "Pending";
             await _context.SaveChangesAsync();
 
-            // Determine redirect URL based on payment method
-            string redirectUrl;
-            if (paymentMethod?.ToLower() == "wallet")
-            {
-                // For mobile wallet, we need to use a different flow
-                redirectUrl = GetMobileWalletPaymentUrl(paymentKeyResponse.PaymentKey, student.PhoneNumber);
-            }
-            else
-            {
-                // For card payments, use the iframe approach
-                redirectUrl = GetPaymentIframeUrl(paymentKeyResponse.PaymentKey);
-            }
+             // For card payments, use the iframe approach
+            var redirectUrl = GetPaymentIframeUrl(paymentKeyResponse.PaymentKey);
+            
 
             return (enrollment, redirectUrl);
-        }
-
-
-        public string GetMobileWalletPaymentUrl(string paymentToken, string phoneNumber)
-        {
-            if (string.IsNullOrEmpty(paymentToken))
-            {
-                throw new ArgumentNullException(nameof(paymentToken), "Payment token cannot be null or empty.");
-            }
-
-            if (string.IsNullOrEmpty(phoneNumber))
-            {
-                throw new ArgumentNullException(nameof(phoneNumber), "Phone number is required for mobile wallet payments.");
-            }
-
-            // Format the phone number if needed (remove spaces, country code handling, etc.)
-            phoneNumber = FormatPhoneNumber(phoneNumber);
-
-            // Request the wallet payment URL from Paymob API
-            return $"https://accept.paymob.com/api/acceptance/payments/pay?payment_token={paymentToken}&source=wallet&wallet_mobile_number={phoneNumber}";
         }
 
         private string FormatPhoneNumber(string phoneNumber)
@@ -190,15 +164,15 @@ namespace ElCentre.Infrastructure.Repositories.Services
         }
 
 
-        public async Task<Enrollment> UpdateOrderSuccess(string paymentIntentId)
+        public async Task<Enrollment> UpdateOrderSuccess(string specialReference)
         {
             var payment = await _context.Payments
                 .Include(p => p.Enrollment)
-                .FirstOrDefaultAsync(p => p.TransactionId == paymentIntentId);
+                .FirstOrDefaultAsync(p => p.TransactionId == specialReference);
 
             if (payment == null)
             {
-                throw new KeyNotFoundException($"Payment with transaction ID {paymentIntentId} not found.");
+                throw new KeyNotFoundException($"Payment with transaction ID {specialReference} not found.");
             }
 
             var enrollment = await _context.Enrollments
@@ -222,15 +196,15 @@ namespace ElCentre.Infrastructure.Repositories.Services
             return payment.Enrollment;
         }
 
-        public async Task<Enrollment> UpdateOrderFailed(string paymentIntentId)
+        public async Task<Enrollment> UpdateOrderFailed(string specialReference)
         {
             var payment = await _context.Payments
                 .Include(p => p.Enrollment)
-                .FirstOrDefaultAsync(p => p.TransactionId == paymentIntentId);
+                .FirstOrDefaultAsync(p => p.TransactionId == specialReference);
 
             if (payment == null)
             {
-                throw new KeyNotFoundException($"Payment with transaction ID {paymentIntentId} not found.");
+                throw new KeyNotFoundException($"Payment with transaction ID {specialReference} not found.");
             }
 
             var enrollment = await _context.Enrollments
@@ -301,15 +275,136 @@ namespace ElCentre.Infrastructure.Repositories.Services
             }
         }
 
-
-        private string DetermineIntegrationId(string paymentMethod)
+        public async Task<(Enrollment Enrollment, string RedirectUrl)> ProcessPaymentForWalletAsync(int enrollmentId)
         {
-            return paymentMethod?.ToLower() switch
+            var enrollment = await _context.Enrollments
+                .Include(e => e.Payments)
+                .Include(e => e.Student)
+                .Include(e => e.Course)
+                .FirstOrDefaultAsync(e => e.Id == enrollmentId);
+
+            if (enrollment == null)
             {
-                "card" => _configuration["Paymob:CardIntegrationId"] ?? throw new ArgumentException("Card integration ID not configured"),
-                "wallet" => _configuration["Paymob:MobileIntegrationId"] ?? throw new ArgumentException("Wallet integration ID not configured"),
-                _ => throw new ArgumentException($"Invalid payment method: {paymentMethod}")
+                throw new KeyNotFoundException($"Enrollment with ID {enrollmentId} not found.");
+            }
+
+            var student = enrollment.Student;
+            if (student == null)
+            {
+                throw new InvalidOperationException("Student associated with the enrollment not found.");
+            }
+
+            // Create HTTP client for direct API calls to Paymob
+            var httpClient = new HttpClient();
+
+            // Get API key from configuration
+            string apiKey = _configuration["Paymob:APIKey"] ??
+                throw new ArgumentException("Paymob API key not configured");
+
+            string secretKey = _configuration["Paymob:SecretKey"] ??
+                throw new ArgumentException("Paymob secret key not configured");
+
+            string publicKey = _configuration["Paymob:PublicKey"] ??
+                throw new ArgumentException("Paymob public key not configured");
+
+            // Generate a special reference for this transaction
+            int specialReference = RandomNumberGenerator.GetInt32(1000000, 9999999) + enrollmentId;
+
+            // Create intention request payload
+            var amountCents = (int)(enrollment.Course.Price * 100);
+
+            // Prepare billing data
+            var billingData = new
+            {
+                apartment = "N/A",
+                first_name = student.FirstName ?? "Guest",
+                last_name = student.LastName ?? "User",
+                street = "N/A",
+                building = "N/A",
+                phone_number = student.PhoneNumber,
+                country = "Egypt",
+                email = student.Email,
+                floor = "N/A",
+                state = "N/A",
+                city = "N/A"
             };
+
+            // Get wallet integration ID
+            var integrationId = _configuration["Paymob:MobileIntegrationId"] ??
+                throw new ArgumentException("Wallet integration ID not configured");
+
+
+            // Prepare intention request payload
+            var payload = new
+            {
+                amount = amountCents,
+                currency = "EGP",
+                payment_methods = new[] {int.Parse(integrationId)} ,
+                billing_data = billingData,
+                items = new[]
+                {
+            new
+            {
+                name = $"Enrollment #{enrollment.Id}",
+                amount = amountCents,
+                description = $"Course Enrollment Payment for course #{enrollment.Course.Title}",
+                quantity = 1
+            }
+        },
+                customer = new
+                {
+                    first_name = billingData.first_name,
+                    last_name = billingData.last_name,
+                    email = billingData.email,
+                    extras = new { enrollmentId = enrollment.Id }
+                },
+                extras = new
+                {
+                    enrollmentId = enrollment.Id,
+                    customerId = student.Id
+                },
+                special_reference = specialReference,
+                expiration = 3600, // 1 hour expiration
+            };
+
+            // Create HTTP request for Paymob's intention API
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://accept.paymob.com/v1/intention/");
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Token", secretKey);
+            requestMessage.Content = JsonContent.Create(payload);
+
+            // Send the request and process response
+            var response = await httpClient.SendAsync(requestMessage);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Paymob Intention API call failed with status {response.StatusCode}: {responseContent}");
+            }
+
+            // Parse the response to get client_secret
+            var resultJson = JsonDocument.Parse(responseContent);
+            var clientSecret = resultJson.RootElement.GetProperty("client_secret").GetString();
+
+            // Create payment record
+            var payment = new Payment
+            {
+                Amount = enrollment.Course.Price,
+                PaymentMethod = "Wallet",
+                Status = "Pending",
+                TransactionId = specialReference.ToString(),
+                EnrollmentId = enrollment.Id,
+                PaymentDate = DateTime.Now,
+                UserId = student.Id
+            };
+
+            _context.Payments.Add(payment);
+            enrollment.PaymentStatus = "Pending";
+            await _context.SaveChangesAsync();
+
+            // Generate payment URL for the unified checkout
+            string redirectUrl = $"https://accept.paymob.com/unifiedcheckout/?publicKey={publicKey}&clientSecret={clientSecret}";
+
+            return (enrollment, redirectUrl);
         }
     }
 }
