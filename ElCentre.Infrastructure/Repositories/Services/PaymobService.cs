@@ -330,8 +330,8 @@ namespace ElCentre.Infrastructure.Repositories.Services
             };
 
             // Get wallet integration ID
-            var integrationId = _configuration["Paymob:MobileIntegrationId"] ??
-                throw new ArgumentException("Wallet integration ID not configured");
+            var integrationId = int.Parse(_configuration["Paymob:MobileIntegrationId"] ??
+                throw new ArgumentException("Wallet integration ID not configured"));
 
 
             // Prepare intention request payload
@@ -339,7 +339,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
             {
                 amount = amountCents,
                 currency = "EGP",
-                payment_methods = new[] {int.Parse(integrationId)} ,
+                payment_methods = new[] {integrationId} ,
                 billing_data = billingData,
                 items = new[]
                 {

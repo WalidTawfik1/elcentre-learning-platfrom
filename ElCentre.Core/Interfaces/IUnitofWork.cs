@@ -16,5 +16,7 @@ namespace ElCentre.Core.Interfaces
         ILessonRepository LessonRepository { get; }
         IEnrollmentRepository EnrollmentRepository { get; }
         ICourseReviewRepository CourseReviewRepository { get; }
+        IQuizRepository QuizRepository { get; }
+        IStudentQuizRepository StudentQuizRepository { get; }
     }
 }

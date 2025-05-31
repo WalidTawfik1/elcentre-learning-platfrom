@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ElCentre.Core.Entities
 {
-    public class AppUser:IdentityUser
+    public class AppUser : IdentityUser
     {
         public string FirstName { get; set; }
 
@@ -31,5 +31,8 @@ namespace ElCentre.Core.Entities
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 
         public ICollection<CourseReview> CourseReviews { get; set; } = new List<CourseReview>();
+
+        public ICollection<StudentQuiz> StudentQuizzes { get; set; } = new List<StudentQuiz>();
+
     }
 }

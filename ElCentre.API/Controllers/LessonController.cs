@@ -32,11 +32,6 @@ namespace ElCentre.API.Controllers
             {
                 var lessons = await work.LessonRepository.GetLessonsByModuleIdAsync(moduleId);
 
-                if (lessons == null || !lessons.Any())
-                {
-                    return NotFound(new APIResponse(404, "No lessons found for this module."));
-                }
-
                 var lessonDtos = mapper.Map<IEnumerable<LessonDTO>>(lessons);
                 return Ok(lessonDtos);
             }

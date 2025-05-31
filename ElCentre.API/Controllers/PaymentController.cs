@@ -29,7 +29,6 @@ namespace ElCentre.API.Controllers
         /// </summary>
         /// <param name="courseID">The course ID to enroll in</param>
         /// <param name="paymentMethod">The payment method (card, wallet)</param>
-        /// <param name="walletPhoneNumber">Phone number for wallet payments (optional)</param>
         /// <returns>The redirect URL for payment processing</returns>
         [Authorize]
         [HttpPost("create-payment-token")]

@@ -44,5 +44,7 @@ namespace ElCentre.Core.Entities
         public ICollection<CourseModule> Modules { get; set; } = new List<CourseModule>();
 
         public ICollection<CourseReview> Reviews { get; set; } = new List<CourseReview>();
+
+        public ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
     }
 }

@@ -28,7 +28,7 @@ namespace ElCentre.Core.DTO
 
         public string Title { get; set; }
 
-        public IFormFile Content { get; set; }
+        public IFormFile? Content { get; set; }
 
         public string ContentType { get; set; }
 

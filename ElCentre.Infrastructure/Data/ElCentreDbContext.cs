@@ -22,10 +22,12 @@ namespace ElCentre.Infrastructure.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<OtpVerification> OtpVerifications { get; set; }
         public DbSet<CompletedLesson> CompletedLessons { get; set; }
+        public DbSet<Quiz> Quizzes { get; set; }
+        public DbSet<StudentQuiz> StudentQuizzes { get; set; }
 
         public ElCentreDbContext(DbContextOptions<ElCentreDbContext> options) : base(options)
         {
-           
+
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -107,10 +109,37 @@ namespace ElCentre.Infrastructure.Data
                 .HasForeignKey(r => r.CourseId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Course has many quizes
+            modelBuilder.Entity<Quiz>()
+                .HasOne(q => q.Course)
+                .WithMany(l => l.Quizzes)
+                .HasForeignKey(q => q.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Lesson has many quizes
+            modelBuilder.Entity<Quiz>()
+                .HasOne(q => q.Lesson)
+                .WithMany(l => l.Quizzes)
+                .HasForeignKey(q => q.LessonId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<StudentQuiz>()
+                .HasOne(sq => sq.Quiz)
+                .WithMany(q => q.StudentQuizzes)
+                .HasForeignKey(sq => sq.QuizId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<StudentQuiz>()
+                .HasOne(sq => sq.Student)
+                .WithMany(s => s.StudentQuizzes)
+                .HasForeignKey(sq => sq.StudentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
 
 
         }
     }
-    
-    
+
+
 }
