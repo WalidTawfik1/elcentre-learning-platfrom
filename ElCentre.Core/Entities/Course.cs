@@ -31,6 +31,8 @@ namespace ElCentre.Core.Entities
 
         public double Rating { get; set; }
 
+        public string CourseStatus { get; set; } = "Pending";
+
         [ForeignKey("Instructor")]
         public string InstructorId { get; set; }
         public AppUser Instructor { get; set; }

@@ -37,7 +37,7 @@ namespace ElCentre.API.Controllers
         }
 
         /// <summary>
-        /// Get all instructor courses
+        /// Get all instructor courses for instructor
         /// </summary>
         /// <returns></returns>
         [Authorize(Roles = "Instructor")]
@@ -53,6 +53,29 @@ namespace ElCentre.API.Controllers
                 }
 
                 var courses = await work.CourseRepository.GetAllbyInstructorIdAsync(InstructorId);
+                return Ok(courses);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Get all approved instructor courses for students
+        /// </summary>
+        /// <returns></returns>
+        [AllowAnonymous]
+        [HttpGet("get-all-approved-instructor-courses/{instructorId}")]
+        public async Task<IActionResult> GetAllApprovedInstructorCourses(string instructorId)
+        {
+            try
+            {
+                var courses = await work.CourseRepository.GetAllApprovedbyInstructorIdAsync(instructorId);
+                if (courses == null || !courses.Any())
+                {
+                    return NotFound(new APIResponse(404, "No courses found for this instructor."));
+                }
                 return Ok(courses);
             }
             catch (Exception ex)
@@ -105,7 +128,7 @@ namespace ElCentre.API.Controllers
                 {
                     return BadRequest(new APIResponse(400, "Please Fill All Fields"));
                 }
-                var result = await work.CourseRepository.AddAsync(addCourseDTO,InstructorId);
+                var result = await work.CourseRepository.AddAsync(addCourseDTO, InstructorId);
                 if (result)
                 {
                     return Ok(new APIResponse(200, "Course Added Successfully"));
@@ -140,7 +163,7 @@ namespace ElCentre.API.Controllers
                 {
                     return BadRequest(new APIResponse(400, "Please Fill All Fields"));
                 }
-                var result = await work.CourseRepository.UpdateAsync(updateCourseDTO,InstructorId);
+                var result = await work.CourseRepository.UpdateAsync(updateCourseDTO, InstructorId);
                 if (!result)
                 {
                     return BadRequest(new APIResponse(400, "Course not found or you don't have a permission to update this course"));
@@ -149,7 +172,7 @@ namespace ElCentre.API.Controllers
             }
             catch (Exception ex)
             {
-                    return BadRequest(new APIResponse(400, ex.Message));
+                return BadRequest(new APIResponse(400, ex.Message));
             }
         }
 
@@ -169,12 +192,94 @@ namespace ElCentre.API.Controllers
                 {
                     return BadRequest(new APIResponse(400, "Sign in first as instructor "));
                 }
-                var result = await work.CourseRepository.DeleteAsync(id,InstructorId);
+                var result = await work.CourseRepository.DeleteAsync(id, InstructorId);
                 if (!result)
                 {
                     return BadRequest(new APIResponse(400, "Course not found or you don't have a permission to delete this course"));
                 }
                 return Ok(new APIResponse(200, "Course deleted successfully"));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new APIResponse(400, ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Get all pending courses for admin approval
+        /// </summary>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("get-pending-courses")]
+        public async Task<IActionResult> GetPendingCourses()
+        {
+            try
+            {
+                var pendingCourses = await work.PendingCourseRepository.GetAllPendingCoursesAsync();
+                return Ok(pendingCourses);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new APIResponse(400, ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Get a pending course by its ID for admin approval
+        /// </summary>
+        /// <param name="courseId"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("get-pending-course/{courseId}")]
+        public async Task<IActionResult> GetPendingCourseById(int courseId)
+        {
+            try
+            {
+                var pendingCourse = await work.PendingCourseRepository.GetPendingCourseByIdAsync(courseId);
+                return Ok(pendingCourse);
+            }
+            catch (KeyNotFoundException knfEx)
+            {
+                return NotFound(new APIResponse(404, knfEx.Message));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new APIResponse(400, ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Update a pending course's status (approve or reject) by admin
+        /// </summary>
+        /// <param name="courseId"></param>
+        /// <param name="decision">The decision (approve or reject)</param>
+        /// <param name="rejectionReason"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin")]
+        [HttpPut("update-pending-course/{courseId}")]
+        public async Task<IActionResult> UpdatePendingCourse(int courseId, [FromBody] PendingCourseUpdateDto request)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(request.Decision) ||
+                    (request.Decision.ToLower() != "approve" && request.Decision.ToLower() != "reject"))
+                {
+                    return BadRequest(new APIResponse(400, "Decision must be either 'approve' or 'reject'."));
+                }
+
+                var result = await work.PendingCourseRepository.UpdatePendingCourseAsync(
+                    courseId, request.Decision, request.RejectionReason);
+
+                if (!result)
+                {
+                    return BadRequest(new APIResponse(400, "Failed to update pending course."));
+                }
+
+                return Ok(new APIResponse(200, "Pending course updated successfully."));
+            }
+            catch (KeyNotFoundException knfEx)
+            {
+                return NotFound(new APIResponse(404, knfEx.Message));
             }
             catch (Exception ex)
             {

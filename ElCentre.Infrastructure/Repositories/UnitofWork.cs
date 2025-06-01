@@ -3,6 +3,7 @@ using ElCentre.Core.Entities;
 using ElCentre.Core.Interfaces;
 using ElCentre.Core.Services;
 using ElCentre.Infrastructure.Data;
+using ElCentre.Infrastructure.Repositories.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using System;
@@ -23,6 +24,7 @@ namespace ElCentre.Infrastructure.Repositories
         private readonly IEmailService _emailService;
         private readonly ICourseThumbnailService _courseThumbnailService;
         private readonly IVideoService _videoService;
+        private readonly IProfilePicture _profilePicture;
 
         public IAuthentication Authentication { get; }
         public ICategoryRepository CategoryRepository { get; }
@@ -34,8 +36,9 @@ namespace ElCentre.Infrastructure.Repositories
         public ICourseReviewRepository CourseReviewRepository { get; }
         public IQuizRepository QuizRepository { get; }
         public IStudentQuizRepository StudentQuizRepository { get; }
+        public IPendingCourseRepository PendingCourseRepository { get; }
 
-        public UnitofWork(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IMapper mapper, ElCentreDbContext context, IGenerateToken generateToken, IEmailService emailService, ICourseThumbnailService courseThumbnailService, IVideoService videoService)
+        public UnitofWork(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IMapper mapper, ElCentreDbContext context, IGenerateToken generateToken, IEmailService emailService, ICourseThumbnailService courseThumbnailService, IVideoService videoService, IProfilePicture profilePicture)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -45,11 +48,12 @@ namespace ElCentre.Infrastructure.Repositories
             _emailService = emailService;
             _courseThumbnailService = courseThumbnailService;
             _videoService = videoService;
+            _profilePicture = profilePicture;
 
 
             Authentication = new AuthenticationRepository(_userManager, _emailService, _signInManager, _generateToken, _context);
             CategoryRepository = new CategoryRepository(_context);
-            UserRepository = new UserRepository(_context, _mapper);
+            UserRepository = new UserRepository(_context, _mapper,_profilePicture);
             CourseRepository = new CourseRepository(_courseThumbnailService, _mapper, _context);
             CourseModuleRepository = new CourseModuleRepository(_context,_mapper);
             LessonRepository = new LessonRepository(_context, _videoService);
@@ -57,6 +61,7 @@ namespace ElCentre.Infrastructure.Repositories
             CourseReviewRepository = new CourseReviewRepository(_context);
             QuizRepository = new QuizRepository(_context,_mapper);
             StudentQuizRepository = new StudentQuizRepository(_context, _mapper);
+            PendingCourseRepository = new PendingCourseRepository(_context,_mapper,_emailService);
         }
 
     }

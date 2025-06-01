@@ -9,6 +9,10 @@ namespace ElCentre.API.Mapping
         public UserMapping()
         {
             CreateMap<AppUser, UserDTO>().ReverseMap();
+            CreateMap<AppUser, UpdateUserDTO>()
+                .ForMember(dest => dest.ProfilePicture, opt => opt.Ignore())
+                .ReverseMap();
+
         }
     }
 }

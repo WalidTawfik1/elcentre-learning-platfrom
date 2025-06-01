@@ -43,6 +43,7 @@ namespace ElCentre.Infrastructure.Repositories
                 DurationInHours = addCourseDTO.DurationInHours,
                 InstructorId = InstructorId,
                 CategoryId = addCourseDTO.CategoryId,
+                CourseStatus = "Pending",
             };
 
             if (addCourseDTO.Thumbnail != null)
@@ -53,7 +54,7 @@ namespace ElCentre.Infrastructure.Repositories
             }
             else
             {
-                course.Thumbnail = "default.png";
+                course.Thumbnail = "https://drive.google.com/uc?export=view&id=1T27W79Al7X4MFaZPwLQF7dJaC-9E39dY";
             }
 
             await context.Courses.AddAsync(course);
@@ -80,6 +81,19 @@ namespace ElCentre.Infrastructure.Repositories
             return true;
         }
 
+        public async Task<IEnumerable<CourseDTO>> GetAllApprovedbyInstructorIdAsync(string InstructorId)
+        {
+            var courses = context.Courses
+                 .Include(c => c.Category)
+                 .Include(c => c.Instructor)
+                 .Include(c => c.Modules)
+                 .Include(c => c.Reviews).ThenInclude(r => r.User)
+                 .Where(c => c.InstructorId == InstructorId && c.CourseStatus == "Approved")
+                 .AsNoTracking();
+            var result = mapper.Map<List<CourseDTO>>(courses);
+            return result;
+        }
+
         public async Task<IEnumerable<CourseDTO>> GetAllAsync(CourseParams courseParams)
         {
             var query = context.Courses
@@ -87,6 +101,7 @@ namespace ElCentre.Infrastructure.Repositories
                 .Include(c => c.Instructor)
                 .Include(c => c.Modules)
                 .Include(c => c.Reviews).ThenInclude(r => r.User)
+                .Where(c => c.CourseStatus == "Approved" && c.IsActive)
                 .AsNoTracking();
 
             // Search

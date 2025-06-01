@@ -53,6 +53,8 @@ namespace ElCentre.Core.DTO
         public int CategoryId { get; set; }
 
         public string CategoryName { get; set; }
+
+        public string CourseStatus { get; set; }
     }
    
     public record UpdateCourseDTO 

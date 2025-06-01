@@ -160,13 +160,60 @@ namespace ElCentre.API.Controllers
         }
 
         /// <summary>
+        /// Gets all instructors.
+        /// </summary>
+        /// <returns></returns>
+        [AllowAnonymous]
+        [HttpGet("get-all-instructors")]
+        public async Task<IActionResult> GetAllInstructors()
+        {
+            try
+            {
+                var instructors = await work.UserRepository.GetAllInstructorsAsync();
+                if (instructors == null || !instructors.Any())
+                {
+                    return NotFound("No instructors found.");
+                }
+                return Ok(instructors);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Gets an instructor by their ID.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [AllowAnonymous]
+        [HttpGet("get-instructor-by-id/{id}")]
+        public async Task<IActionResult> GetInstructorById(string id)
+        {
+            try
+            {
+                var instructor = await work.UserRepository.GetInstructorById(id);
+                if (instructor == null)
+                {
+                    return NotFound($"Instructor with ID {id} not found.");
+                }
+                return Ok(instructor);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Updates the profile of the authenticated user.
         /// </summary>
         /// <param name="customerDTO"></param>
         /// <returns></returns>
         [Authorize]
         [HttpPut("edit-profile")]
-        public async Task<IActionResult> EditProfile([FromBody] UserDTO userDTO)
+        public async Task<IActionResult> EditProfile([FromForm] UpdateUserDTO userDTO)
         {
             try
             {

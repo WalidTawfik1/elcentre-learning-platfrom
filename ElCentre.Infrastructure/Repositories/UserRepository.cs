@@ -2,6 +2,7 @@
 using ElCentre.Core.DTO;
 using ElCentre.Core.Interfaces;
 using ElCentre.Infrastructure.Data;
+using ElCentre.Infrastructure.Repositories.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -15,11 +16,43 @@ namespace ElCentre.Infrastructure.Repositories
     {
         private readonly ElCentreDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IProfilePicture _profilePicture;
 
-        public UserRepository(ElCentreDbContext context, IMapper mapper)
+        public UserRepository(ElCentreDbContext context, IMapper mapper, IProfilePicture profilePicture)
         {
             _context = context;
             _mapper = mapper;
+            _profilePicture = profilePicture;
+        }
+
+        public async Task<IEnumerable<UserDTO>> GetAllInstructorsAsync()
+        {
+            var instructors = await _context.Users
+                .Where(u => u.UserType == "Instructor")
+                .ToListAsync();
+            if (instructors == null || !instructors.Any())
+            {
+                return new List<UserDTO>();
+            }
+            var result = _mapper.Map<IEnumerable<UserDTO>>(instructors);
+            return result;
+
+        }
+
+        public async Task<UserDTO> GetInstructorById(string Id)
+        {
+            if (string.IsNullOrEmpty(Id))
+            {
+                throw new ArgumentException("User ID cannot be null or empty.");
+            }
+            var instructor = await _context.Users.FirstOrDefaultAsync(u => u.Id == Id && u.UserType == "Instructor");
+            if (instructor == null)
+            {
+                throw new KeyNotFoundException($"Instructor with ID {Id} not found.");
+            }
+            var result = _mapper.Map<UserDTO>(instructor);
+            return result;
+
         }
 
         public async Task<UserDTO> GetUserProfileAsync(string Id)
@@ -34,7 +67,7 @@ namespace ElCentre.Infrastructure.Repositories
 
         }
 
-        public async Task<UserDTO> UpdateUserProfileAsync(string Id, UserDTO userDTO)
+        public async Task<UpdateUserDTO> UpdateUserProfileAsync(string Id, UpdateUserDTO userDTO)
         {
             if (string.IsNullOrEmpty(Id))
             {
@@ -45,11 +78,26 @@ namespace ElCentre.Infrastructure.Repositories
             {
                 throw new KeyNotFoundException($"User with ID {Id} not found.");
             }
-            _mapper.Map(userDTO, user);
+            _mapper.Map(source: userDTO, user);
+
+            if (userDTO.ProfilePicture != null)
+            {
+                if(user.ProfilePicture != null)
+                {
+                    _profilePicture.DeleteImageAsync(user.ProfilePicture);
+                    var profilePicture = await _profilePicture.AddImageAsync(userDTO.ProfilePicture, user.Id);
+                    user.ProfilePicture = profilePicture;
+                }
+                else
+                {
+                    var profilePicture = await _profilePicture.AddImageAsync(userDTO.ProfilePicture, user.Id);
+                    user.ProfilePicture = profilePicture;
+                }
+            }
 
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<UserDTO>(user);
+            return _mapper.Map<UpdateUserDTO>(user);
 
         }
     }

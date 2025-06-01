@@ -46,7 +46,7 @@ namespace ElCentre.Infrastructure.Data
                 .HasOne(c => c.Category)
                 .WithMany(cat => cat.Courses)
                 .HasForeignKey(c => c.CategoryId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Course has many modules
             modelBuilder.Entity<CourseModule>()
@@ -69,7 +69,7 @@ namespace ElCentre.Infrastructure.Data
                 .HasOne(e => e.Student)
                 .WithMany(u => u.Enrollments)
                 .HasForeignKey(e => e.StudentId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
 
 
@@ -78,7 +78,7 @@ namespace ElCentre.Infrastructure.Data
                 .HasOne(e => e.Course)
                 .WithMany(c => c.Enrollments)
                 .HasForeignKey(e => e.CourseId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
 
 
@@ -86,20 +86,23 @@ namespace ElCentre.Infrastructure.Data
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.User)
                 .WithMany(u => u.Payments)
-                .HasForeignKey(p => p.UserId);
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Enrollment has many payments (optional)
             modelBuilder.Entity<Payment>()
                 .HasOne(p => p.Enrollment)
                 .WithMany(e => e.Payments)
                 .HasForeignKey(p => p.EnrollmentId)
-                .IsRequired(false); // optional
+                .IsRequired(false) // optional
+                .OnDelete(DeleteBehavior.Restrict);
 
             // User has many reviews
             modelBuilder.Entity<CourseReview>()
                 .HasOne(r => r.User)
                 .WithMany(u => u.CourseReviews)
-                .HasForeignKey(r => r.UserId);
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
             // Course has many reviews

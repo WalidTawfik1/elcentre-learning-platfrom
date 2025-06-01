@@ -10,6 +10,9 @@ namespace ElCentre.Core.Interfaces
     public interface IUserRepository
     {
         Task<UserDTO> GetUserProfileAsync(string Id);
-        Task<UserDTO> UpdateUserProfileAsync(string Id, UserDTO userDTO);
+        Task<UpdateUserDTO> UpdateUserProfileAsync(string Id, UpdateUserDTO userDTO);
+        Task<IEnumerable<UserDTO>> GetAllInstructorsAsync();
+        Task<UserDTO> GetInstructorById(string Id);
+
     }
 }

@@ -43,6 +43,9 @@ namespace ElCentre.Infrastructure
             // Register ICourseThumbnail service
             services.AddSingleton<ICourseThumbnailService, CourseThumbnailService>();
 
+            // Register IProfilePicture service
+            services.AddScoped<IProfilePicture, ProfilePicture>();
+
             // Register the IFileProvider service
             services.AddSingleton<IFileProvider>(new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory())));
 
