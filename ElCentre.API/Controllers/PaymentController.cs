@@ -49,22 +49,20 @@ namespace ElCentre.API.Controllers
 
             try
             {
-                if(paymentMethod.Equals("card", StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrWhiteSpace(paymentMethod))
+                    return BadRequest("Payment method is required.");
+
+                if (paymentMethod.Equals("card", StringComparison.OrdinalIgnoreCase) ||
+                    paymentMethod.Equals("wallet", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Process payment for card method
-                    var (enrollmentResult, redirectUrl) = await _paymobService.ProcessPaymentForCardAsync(enrollment.Id);
-                    return Ok(new { RedirectUrl = redirectUrl });
-                }
-                else if (paymentMethod.Equals("wallet", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Process payment for wallet method
-                    var (enrollmentResult, redirectUrl) = await _paymobService.ProcessPaymentForWalletAsync(enrollment.Id);
+                    var (enrollmentResult, redirectUrl) = await _paymobService.ProcessPaymentAsync(enrollment.Id, paymentMethod);
                     return Ok(new { RedirectUrl = redirectUrl });
                 }
                 else
                 {
                     return BadRequest("Invalid payment method. Supported methods are 'card' and 'wallet'.");
                 }
+
             }
             catch (Exception ex)
             {
@@ -109,7 +107,7 @@ namespace ElCentre.API.Controllers
             {
                 bool.TryParse(query["success"], out bool isSuccess);
 
-                var specialReference = query["merchant_order_id"].ToString() ?? query["order"].ToString();
+                var specialReference = query["merchant_order_id"];
                     
                 if (isSuccess)
                 {
