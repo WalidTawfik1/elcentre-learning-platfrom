@@ -60,7 +60,7 @@ namespace ElCentre.Infrastructure.Repositories
             EnrollmentRepository = new EnrollmentRepository(_context,_mapper);
             CourseReviewRepository = new CourseReviewRepository(_context);
             QuizRepository = new QuizRepository(_context,_mapper);
-            StudentQuizRepository = new StudentQuizRepository(_context, _mapper);
+            StudentQuizRepository = new StudentQuizRepository(_context);
             PendingCourseRepository = new PendingCourseRepository(_context,_mapper,_emailService);
         }
 

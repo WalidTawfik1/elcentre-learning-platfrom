@@ -13,12 +13,10 @@ namespace ElCentre.Infrastructure.Repositories
     public class StudentQuizRepository : GenericRepository<StudentQuiz>, IStudentQuizRepository
     {
         private readonly ElCentreDbContext _context;
-        private readonly IMapper _mapper;
 
-        public StudentQuizRepository(ElCentreDbContext context, IMapper mapper) : base(context)
+        public StudentQuizRepository(ElCentreDbContext context) : base(context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
         public async Task<string> GetTotalQuizScoreAsync(string studentId, int lessonId)
