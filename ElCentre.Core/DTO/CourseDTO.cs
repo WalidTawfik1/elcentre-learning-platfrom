@@ -55,6 +55,8 @@ namespace ElCentre.Core.DTO
         public string CategoryName { get; set; }
 
         public string CourseStatus { get; set; }
+
+        public string InstructorImage { get; set; }
     }
    
     public record UpdateCourseDTO 

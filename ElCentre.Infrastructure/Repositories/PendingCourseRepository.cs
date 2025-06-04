@@ -31,13 +31,15 @@ namespace ElCentre.Infrastructure.Repositories
         {
             var pendingCourses = await _context.Courses
                 .Where(c => c.CourseStatus == "Pending")
+                .Include(c => c.Instructor)
+                .Include(c => c.Category)
                 .ToListAsync();
-            if (pendingCourses == null || !pendingCourses.Any())
+            if (!pendingCourses.Any())
             {
                 return new List<CourseDTO>();
             }
             var result = _mapper.Map<List<CourseDTO>>(pendingCourses);
-            return result ;
+            return result;
         }
 
         public async Task<CourseDTO> GetPendingCourseByIdAsync(int courseId)

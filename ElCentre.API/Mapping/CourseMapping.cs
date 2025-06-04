@@ -12,6 +12,7 @@ namespace ElCentre.API.Mapping
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name))
                 .ForMember(dest => dest.InstructorName,
                      opt => opt.MapFrom(src => $"{src.Instructor.FirstName} {src.Instructor.LastName}"))
+                .ForMember(dest => dest.InstructorImage,opt => opt.MapFrom(src => src.Instructor.ProfilePicture))
                 .ReverseMap();
 
             CreateMap<Course, AddCourseDTO>()

@@ -5,6 +5,7 @@ using ElCentre.Core.Entities;
 using ElCentre.Core.Interfaces;
 using ElCentre.Core.Services;
 using ElCentre.Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -270,21 +271,27 @@ namespace ElCentre.API.Controllers
             }
 
             return BadRequest(new { success = false, message = "Failed to send verification code" });
-        }
-
-        /// <summary>
-        /// Initiates Google login, Redirect automaticlly to google-response.
+        }        /// <summary>
+        /// Initiates Google login, Redirect automatically to google-response.
         /// </summary>
         /// <returns></returns>
         [AllowAnonymous]
         [HttpGet("google-login")]
         public IActionResult GoogleLogin()
         {
+            // Check if Google authentication is configured
+            var googleClientId = _configuration["Authentication:Google:ClientId"];
+            var googleClientSecret = _configuration["Authentication:Google:ClientSecret"];
+            
+            if (string.IsNullOrEmpty(googleClientId) || string.IsNullOrEmpty(googleClientSecret))
+            {
+                return BadRequest(new APIResponse(400, "Google authentication is not configured. Please contact the administrator."));
+            }
+
             var redirectUrl = Url.Action("GoogleResponse", "Account", null, Request.Scheme);
             var properties = _signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl);
             return Challenge(properties, "Google");
-        }
-        /// <summary>
+        }        /// <summary>
         /// Handles the Google login response.
         /// </summary>
         /// <returns></returns>
@@ -292,60 +299,83 @@ namespace ElCentre.API.Controllers
         [HttpGet("google-response")]
         public async Task<IActionResult> GoogleResponse()
         {
-            var info = await _signInManager.GetExternalLoginInfoAsync();
-            if (info == null)
+            try
             {
-                return BadRequest("Error loading external login information.");
-            }
-
-            // Look for the user in your application
-            var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-            if (user == null)
-            {
-                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                if (string.IsNullOrEmpty(email))
+                // Clear any existing external cookies
+                await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+                
+                var info = await _signInManager.GetExternalLoginInfoAsync();
+                if (info == null)
                 {
-                    return BadRequest("Google account did not provide an email.");
+                    return BadRequest(new APIResponse(400, "Error loading external login information. Please try logging in again."));
                 }
 
-                // Check if user already exists by email
-                user = await _userManager.FindByEmailAsync(email);
+                // Look for the user in your application
+                var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
                 if (user == null)
                 {
-                    user = new AppUser
+                    var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                    if (string.IsNullOrEmpty(email))
                     {
-                        UserName = info.Principal.Identity?.Name?.Replace(" ", "") ?? email,
-                        FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName) ?? "Unknown",
-                        LastName = info.Principal.FindFirstValue(ClaimTypes.Surname) ?? "User",
-                        Email = email,
-                        EmailConfirmed = true,
-                        UserType = "Student",
-                        CreatedAt = DateTime.Now,
-                    };
+                        return BadRequest(new APIResponse(400, "Google account did not provide an email."));
+                    }
 
-                    var result = await _userManager.CreateAsync(user);
-                    await _userManager.AddToRoleAsync(user, "Student");
-
-                    if (!result.Succeeded)
+                    // Check if user already exists by email
+                    user = await _userManager.FindByEmailAsync(email);
+                    if (user == null)
                     {
-                        return BadRequest(new { Message = "User creation failed.", Errors = result.Errors });
+                        user = new AppUser
+                        {
+                            UserName = info.Principal.Identity?.Name?.Replace(" ", "") ?? email,
+                            FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName) ?? "Unknown",
+                            LastName = info.Principal.FindFirstValue(ClaimTypes.Surname) ?? "User",
+                            Email = email,
+                            EmailConfirmed = true,
+                            UserType = "Student",
+                            CreatedAt = DateTime.Now,
+                        };
+
+                        var result = await _userManager.CreateAsync(user);
+                        if (result.Succeeded)
+                        {
+                            await _userManager.AddToRoleAsync(user, "Student");
+                        }
+                        else
+                        {
+                            return BadRequest(new APIResponse(400, "User creation failed."));
+                        }
+                    }
+
+                    // Link Google login with user
+                    var loginResult = await _userManager.AddLoginAsync(user, info);
+                    if (!loginResult.Succeeded)
+                    {
+                        return BadRequest(new APIResponse(400, "Failed to associate Google login with user."));
                     }
                 }
 
-                // Link Google login with user
-                var loginResult = await _userManager.AddLoginAsync(user, info);
-                if (!loginResult.Succeeded)
+                // Sign in the user using cookie authentication
+                await _signInManager.SignInAsync(user, isPersistent: false);
+
+                // Generate JWT token
+                var token = _generateToken.GetAndCreateToken(user);
+
+                // Set token in cookie
+                Response.Cookies.Append("token", token, new CookieOptions
                 {
-                    return BadRequest(new { Message = "Failed to associate Google login with user.", Errors = loginResult.Errors });
-                }
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Lax,
+                    Secure = false,
+                    IsEssential = true,
+                    Expires = DateTime.Now.AddDays(7)
+                });
+
+                return Redirect($"http://localhost:8080/google-bridge?token={token}");
             }
-
-            // Sign in the user using cookie authentication
-            await _signInManager.SignInAsync(user, isPersistent: false);
-
-            // Generate JWT token
-            var token = _generateToken.GetAndCreateToken(user);
-            return Redirect($"https://graduation-project-smarket.vercel.app/google-bridge?token={token}");
+            catch (Exception ex)
+            {
+                return StatusCode(500, new APIResponse(500, $"Internal server error: {ex.Message}"));
+            }
         }
     }
 }
