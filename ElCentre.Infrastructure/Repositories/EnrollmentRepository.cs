@@ -170,7 +170,7 @@ namespace ElCentre.Infrastructure.Repositories
                 return null;
 
             var enrollments =  await _context.Enrollments
-                .Where(e => e.StudentId == studentId)
+                .Where(e => e.StudentId == studentId && e.PaymentStatus == "Success")
                 .Include(e => e.Course)
                 .ToListAsync();
             if (enrollments == null)
@@ -185,7 +185,7 @@ namespace ElCentre.Infrastructure.Repositories
             if (courseId <= 0)
                 return null;
             var enrollments = await _context.Enrollments
-                .Where(e => e.CourseId == courseId)
+                .Where(e => e.CourseId == courseId && e.PaymentStatus == "Success")
                 .Include(e => e.Course)
                 .ToListAsync();
             if (enrollments == null)
