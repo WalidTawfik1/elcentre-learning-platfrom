@@ -199,7 +199,7 @@ namespace ElCentre.Infrastructure.Repositories
             if (courseId <= 0)
                 return 0;
             var count = await _context.Enrollments
-                .Where(e => e.CourseId == courseId)
+                .Where(e => e.CourseId == courseId && e.PaymentStatus == "Success")
                 .CountAsync();
             return count;
         }
