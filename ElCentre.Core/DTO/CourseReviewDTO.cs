@@ -17,6 +17,7 @@ namespace ElCentre.Core.DTO
     {
         public string StudentId { get; set; }
         public string StudentName { get; set; }
+        public string StudentImage { get; set; }
         public int Id { get; set; }
         public int Rating { get; set; }
         public string? ReviewContent { get; set; }

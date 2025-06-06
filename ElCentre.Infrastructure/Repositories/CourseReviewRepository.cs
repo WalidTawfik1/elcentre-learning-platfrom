@@ -95,6 +95,7 @@ namespace ElCentre.Infrastructure.Repositories
                 StudentId = m.UserId,
                 Id = m.Id,
                 StudentName = m.User.FirstName + " " + m.User.LastName,
+                StudentImage = m.User.ProfilePicture,
                 Rating = (int)m.Rating,
                 ReviewContent = m.ReviewContent,
                 CreatedAt = m.CreatedAt,

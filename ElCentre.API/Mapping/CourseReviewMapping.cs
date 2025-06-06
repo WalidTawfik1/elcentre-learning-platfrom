@@ -12,6 +12,7 @@ namespace ElCentre.API.Mapping
             CreateMap<CourseReview, ReturnCourseReviewDTO>()
                 .ForMember(dest => dest.StudentName, opt => opt.MapFrom(src => src.User.UserName))
                 .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.User.Id))
+                .ForMember(dest => dest.StudentImage, opt => opt.MapFrom(src => src.User.ProfilePicture))
                 .ReverseMap();
             CreateMap<UpdateReviewDTO, CourseReview>().ReverseMap();
         }
