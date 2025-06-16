@@ -63,7 +63,7 @@ namespace ElCentre.Infrastructure.Data
                 .HasOne(l => l.Module)
                 .WithMany(m => m.Lessons)
                 .HasForeignKey(l => l.ModuleId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
 
 
             // User has many enrollments
