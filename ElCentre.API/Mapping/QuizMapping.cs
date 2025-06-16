@@ -10,6 +10,7 @@ namespace ElCentre.API.Mapping
         {
             CreateMap<Quiz, AddQuizDTO>().ReverseMap();
             CreateMap<Quiz, QuizDTO>().ReverseMap();
+            CreateMap<Quiz, UpdateQuizDTO>().ReverseMap();
         }
     }
 }

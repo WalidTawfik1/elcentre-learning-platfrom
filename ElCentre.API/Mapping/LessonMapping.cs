@@ -20,7 +20,8 @@ namespace ElCentre.API.Mapping
             CreateMap<UpdateLessonDTO, Lesson>()
                 .ForMember(dest => dest.OrderIndex, opt => opt.Ignore())
                 .ForMember(dest => dest.ModuleId, opt => opt.Ignore())
-                .ForMember(dest => dest.Content, opt => opt.Ignore()); // Content is handled separately
+                .ForMember(dest => dest.ContentType, opt => opt.Ignore())
+                .ForMember(dest => dest.Content, opt => opt.Ignore());
         }
     }
 }

@@ -31,7 +31,8 @@ namespace ElCentre.Infrastructure.Repositories.Services
             {
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.GivenName, $"{user.FirstName ?? ""} {user.LastName ?? ""}".Trim()),
             };
             foreach (var item in role)
             {

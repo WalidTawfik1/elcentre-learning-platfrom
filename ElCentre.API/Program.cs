@@ -1,7 +1,9 @@
-
 using DotNetEnv;
 using ElCentre.API.Middlewares;
+using ElCentre.Contracts.Hubs;
+using ElCentre.Core.Services;
 using ElCentre.Infrastructure;
+using ElCentre.Infrastructure.Repositories.Services;
 using System.Reflection;
 
 namespace ElCentre.API
@@ -19,6 +21,7 @@ namespace ElCentre.API
                 options.AddPolicy("CORSPolicy", builder =>
                 builder.AllowAnyMethod().AllowAnyHeader().AllowCredentials().SetIsOriginAllowed(_ => true));
             });
+            builder.Services.AddSignalR();
             builder.Services.AddMemoryCache();
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -29,11 +32,14 @@ namespace ElCentre.API
                 {
                     Title = "ElCentre.API",
                     Version = "v1"
-                }); 
+                });
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 s.IncludeXmlComments(xmlPath);
             });
+
+            // Register notification service
+            builder.Services.AddScoped<INotificationService, NotificationService>();
 
             // Add Infrastructure services
             builder.Services.InfrastructureConfiguration(builder.Configuration);
@@ -44,19 +50,19 @@ namespace ElCentre.API
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-           // if (app.Environment.IsDevelopment())
+            // if (app.Environment.IsDevelopment())
             //{
-                app.UseSwagger();
-                app.UseSwaggerUI(c =>
-                {
-                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ElCentre API V1");
-                    c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
-                });
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "ElCentre API V1");
+                c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
+            });
 
             app.UseCors("CORSPolicy");
 
             app.UseMiddleware<ExceptionsMiddleware>();
-            
+
             app.UseAuthentication();
 
             app.UseAuthorization();
@@ -66,6 +72,9 @@ namespace ElCentre.API
             app.UseStatusCodePagesWithReExecute("/errors/{0}");
 
             app.UseHttpsRedirection();
+
+            // Map SignalR hub
+            app.MapHub<NotificationsHub>("/hubs/notifications");
 
             app.MapControllers();
 

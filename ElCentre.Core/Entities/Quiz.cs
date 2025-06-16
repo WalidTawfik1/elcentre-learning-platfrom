@@ -33,11 +33,13 @@ namespace ElCentre.Core.Entities
 
         [ForeignKey("Course")]
         public int CourseId { get; set; }
+        [JsonIgnore]
         public Course Course { get; set; }
 
 
         [ForeignKey("Lesson")]
         public int LessonId { get; set; }
+        [JsonIgnore]
         public Lesson Lesson { get; set; }
 
         [JsonIgnore]

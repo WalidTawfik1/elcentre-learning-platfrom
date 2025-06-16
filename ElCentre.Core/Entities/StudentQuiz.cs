@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace ElCentre.Core.Entities
@@ -15,6 +16,7 @@ namespace ElCentre.Core.Entities
 
         [ForeignKey("Student")]
         public string StudentId { get; set; }
+        [JsonIgnore]
         public AppUser Student {  get; set; }
 
         [ForeignKey("Quiz")]

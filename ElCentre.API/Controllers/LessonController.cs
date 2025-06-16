@@ -3,6 +3,7 @@ using ElCentre.API.Helper;
 using ElCentre.Core.DTO;
 using ElCentre.Core.Entities;
 using ElCentre.Core.Interfaces;
+using ElCentre.Core.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,8 +16,10 @@ namespace ElCentre.API.Controllers
 {
     public class LessonController : BaseController
     {
-        public LessonController(IUnitofWork work, IMapper mapper) : base(work, mapper)
+        private readonly INotificationService _notificationService;
+        public LessonController(IUnitofWork work, IMapper mapper, INotificationService notificationService) : base(work, mapper)
         {
+            _notificationService = notificationService;
         }
 
         /// <summary>
@@ -95,6 +98,20 @@ namespace ElCentre.API.Controllers
                     return BadRequest(new APIResponse(400, "Failed to add lesson, you may don't have permission to add it"));
                 }
 
+                // Notify all students in the course about the new lesson
+                var courseId = lesson.Module.CourseId;
+                var instructorName = HttpContext.User.FindFirst(ClaimTypes.GivenName)?.Value ?? "Instructor";
+                var notification = new CourseNotification
+                {
+                    Title = "New Lesson Added",
+                    Message = $"A new lesson '{lesson.Title}' has been added",
+                    CourseId = courseId,
+                    CreatedById = InstructorId,
+                    CreatedByName = instructorName,
+                    NotificationType = "NewLesson"
+                };
+                await _notificationService.CreateCourseNotificationAsync(notification);
+
                 return Ok(new APIResponse(200, "Lesson added successfully"));
             }
             catch (Exception ex)
@@ -110,7 +127,7 @@ namespace ElCentre.API.Controllers
         /// <returns>Response indicating success or failure</returns>
         [Authorize(Roles = "Admin,Instructor")]
         [HttpPut("update-lesson")]
-        public async Task<IActionResult> UpdateLesson([FromForm] UpdateLessonDTO updateLessonDto)
+        public async Task<IActionResult> UpdateLesson(UpdateLessonDTO updateLessonDto)
         {
             try
             {
@@ -121,17 +138,19 @@ namespace ElCentre.API.Controllers
                 }
                 var lesson = mapper.Map<Lesson>(updateLessonDto);
 
-                // Get the existing lesson to preserve ModuleId
+                // Get the existing lesson to preserve ModuleId and ContentType
                 var existingLesson = await work.LessonRepository.GetByIdAsync(updateLessonDto.Id);
                 if (existingLesson == null)
                 {
                     return NotFound(new APIResponse(404, "Lesson not found."));
                 }
 
-                // Preserve the ModuleId from the database
+                // Preserve the ModuleId and ContentType from the database
                 lesson.ModuleId = existingLesson.ModuleId;
+                lesson.ContentType = existingLesson.ContentType;
+                lesson.Content = existingLesson.Content;
 
-                var result = await work.LessonRepository.UpdateLessonAsync(lesson, updateLessonDto.Content, InstructorId);
+                var result = await work.LessonRepository.UpdateLessonAsync(lesson,InstructorId);
 
                 if (result)
                 {
@@ -145,7 +164,6 @@ namespace ElCentre.API.Controllers
                 return BadRequest(new APIResponse(500, ex.Message));
             }
         }
-
         /// <summary>
         /// Delete a lesson
         /// </summary>

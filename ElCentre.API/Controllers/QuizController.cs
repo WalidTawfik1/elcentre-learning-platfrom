@@ -20,7 +20,7 @@ namespace ElCentre.API.Controllers
         /// </summary>
         /// <param name="courseId"></param>
         /// <returns></returns>
-        [AllowAnonymous]
+        [Authorize(Roles = "Instructor,Student")]
         [HttpGet("get-all-course-quizzes")]
         public async Task<IActionResult> GetAllCourseQuizzes(int courseId)
         {
@@ -87,7 +87,7 @@ namespace ElCentre.API.Controllers
          /// <returns></returns>
              [Authorize(Roles = "Instructor")]
              [HttpPut("update-quiz")]
-             public async Task<IActionResult> UpdateQuiz([FromForm] QuizDTO quizDTO)
+             public async Task<IActionResult> UpdateQuiz([FromForm] UpdateQuizDTO quizDTO)
              {
                  try
                  {

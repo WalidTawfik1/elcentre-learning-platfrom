@@ -17,6 +17,8 @@ namespace ElCentre.Core.DTO
 
         public int? DurationInMinutes { get; set; }
 
+        public string? Description { get; set; }
+
         public bool IsPublished { get; set; } = true;
 
         public int ModuleId { get; set; }
@@ -28,11 +30,9 @@ namespace ElCentre.Core.DTO
 
         public string Title { get; set; }
 
-        public IFormFile? Content { get; set; }
-
-        public string ContentType { get; set; }
-
         public int? DurationInMinutes { get; set; }
+
+        public string? Description { get; set; }
 
         public bool IsPublished { get; set; } = true;
     }
@@ -47,11 +47,13 @@ namespace ElCentre.Core.DTO
 
         public string Title { get; set; }
 
-        public String Content { get; set; }
+        public string Content { get; set; }
 
         public string ContentType { get; set; }
 
-        public int? DurationInMinutes { get; set; }
+        public int DurationInMinutes { get; set; }
+
+        public string Description { get; set; }
 
         public bool IsPublished { get; set; } = true;
 

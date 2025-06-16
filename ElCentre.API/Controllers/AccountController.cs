@@ -271,14 +271,23 @@ namespace ElCentre.API.Controllers
             }
 
             return BadRequest(new { success = false, message = "Failed to send verification code" });
-        }        /// <summary>
-        /// Initiates Google login, Redirect automatically to google-response.
+        }
+
+        /// <summary>
+        /// Initiates Google login with role selection.
         /// </summary>
+        /// <param name="role">The role to assign to the user (Student or Instructor).</param>
         /// <returns></returns>
         [AllowAnonymous]
         [HttpGet("google-login")]
-        public IActionResult GoogleLogin()
+        public IActionResult GoogleLogin(string role = "Student")
         {
+            // Validate role
+            if (role != "Student" && role != "Instructor")
+            {
+                return BadRequest(new APIResponse(400, "Invalid role. Role must be either 'Student' or 'Instructor'."));
+            }
+
             // Check if Google authentication is configured
             var googleClientId = _configuration["Authentication:Google:ClientId"];
             var googleClientSecret = _configuration["Authentication:Google:ClientSecret"];
@@ -288,19 +297,28 @@ namespace ElCentre.API.Controllers
                 return BadRequest(new APIResponse(400, "Google authentication is not configured. Please contact the administrator."));
             }
 
-            var redirectUrl = Url.Action("GoogleResponse", "Account", null, Request.Scheme);
+            var redirectUrl = Url.Action("GoogleResponse", "Account", new { role }, Request.Scheme);
             var properties = _signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl);
             return Challenge(properties, "Google");
-        }        /// <summary>
-        /// Handles the Google login response.
+        }
+
+        /// <summary>
+        /// Handles the Google login response and assigns the selected role.
         /// </summary>
+        /// <param name="role">The role to assign to the user.</param>
         /// <returns></returns>
         [AllowAnonymous]
         [HttpGet("google-response")]
-        public async Task<IActionResult> GoogleResponse()
+        public async Task<IActionResult> GoogleResponse(string role = "Student")
         {
             try
             {
+                // Validate role
+                if (role != "Student" && role != "Instructor")
+                {
+                    role = "Student"; // Default to Student if invalid role
+                }
+
                 // Clear any existing external cookies
                 await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
                 
@@ -312,6 +330,8 @@ namespace ElCentre.API.Controllers
 
                 // Look for the user in your application
                 var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+                bool isNewUser = false;
+
                 if (user == null)
                 {
                     var email = info.Principal.FindFirstValue(ClaimTypes.Email);
@@ -324,6 +344,7 @@ namespace ElCentre.API.Controllers
                     user = await _userManager.FindByEmailAsync(email);
                     if (user == null)
                     {
+                        isNewUser = true;
                         user = new AppUser
                         {
                             UserName = info.Principal.Identity?.Name?.Replace(" ", "") ?? email,
@@ -331,18 +352,21 @@ namespace ElCentre.API.Controllers
                             LastName = info.Principal.FindFirstValue(ClaimTypes.Surname) ?? "User",
                             Email = email,
                             EmailConfirmed = true,
-                            UserType = "Student",
+                            UserType = role,
                             CreatedAt = DateTime.Now,
                         };
 
                         var result = await _userManager.CreateAsync(user);
-                        if (result.Succeeded)
-                        {
-                            await _userManager.AddToRoleAsync(user, "Student");
-                        }
-                        else
+                        if (!result.Succeeded)
                         {
                             return BadRequest(new APIResponse(400, "User creation failed."));
+                        }
+                        
+                        // Add user to role
+                        var roleResult = await _userManager.AddToRoleAsync(user, role);
+                        if (!roleResult.Succeeded)
+                        {
+                            return BadRequest(new APIResponse(400, $"Failed to assign {role} role."));
                         }
                     }
 
@@ -370,7 +394,8 @@ namespace ElCentre.API.Controllers
                     Expires = DateTime.Now.AddDays(7)
                 });
 
-                return Redirect($"http://localhost:8080/google-bridge?token={token}");
+                // Return to frontend with token and user status
+                return Redirect($"http://localhost:8080/google-bridge?token={token}&isNewUser={isNewUser}&role={user.UserType}");
             }
             catch (Exception ex)
             {

@@ -29,11 +29,6 @@ namespace ElCentre.API.Controllers
             {
                 var courseModules = await work.CourseModuleRepository.GetModulesByCourseIdAsync(courseId);
 
-                if (courseModules == null || !courseModules.Any())
-                {
-                    return NotFound(new APIResponse(404, "No course modules found."));
-                }
-
                 return Ok(courseModules);
             }
             catch (Exception ex)

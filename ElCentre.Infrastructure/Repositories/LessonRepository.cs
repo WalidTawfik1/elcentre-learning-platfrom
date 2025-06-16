@@ -122,7 +122,7 @@ namespace ElCentre.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<bool> UpdateLessonAsync(Lesson lesson, IFormFile content, string instructorId)
+        public async Task<bool> UpdateLessonAsync(Lesson lesson, string instructorId)
         {
             try
             {
@@ -131,12 +131,12 @@ namespace ElCentre.Infrastructure.Repositories
                     .Include(m => m.Course)
                     .FirstOrDefaultAsync(m => m.Id == lesson.ModuleId && m.Course.InstructorId == instructorId);
 
-                if (module == null) 
+                if (module == null)
                     return false;
 
                 // Get the existing lesson
                 var existingLesson = await _context.Lessons
-                .FirstOrDefaultAsync(l => l.Id == lesson.Id);
+                    .FirstOrDefaultAsync(l => l.Id == lesson.Id);
                 if (existingLesson == null)
                     return false;
 
@@ -144,49 +144,7 @@ namespace ElCentre.Infrastructure.Repositories
                 existingLesson.Title = lesson.Title;
                 existingLesson.DurationInMinutes = lesson.DurationInMinutes;
                 existingLesson.IsPublished = lesson.IsPublished;
-
-                // Update content if new content is provided
-                if (content != null)
-                {
-                    // If content type is changed or new content is provided
-                    bool contentTypeChanged = lesson.ContentType != existingLesson.ContentType;
-
-                    // Delete old video if it was video type
-                    if ((contentTypeChanged || lesson.ContentType == "video") &&
-                        existingLesson.ContentType == "video" &&
-                        !string.IsNullOrEmpty(existingLesson.Content))
-                    {
-                        try
-                        {
-                            Uri uri = new Uri(existingLesson.Content);
-                            string path = uri.AbsolutePath;
-                            string[] segments = path.Split('/');
-                            string filename = segments[segments.Length - 1];
-                            string publicId = Path.GetFileNameWithoutExtension(filename);
-
-                            await _videoService.DeleteVideoAsync(publicId);
-                        }
-                        catch (Exception ex)
-                        {
-                            // Log the error but continue with update
-                            Console.WriteLine($"Error deleting video: {ex.Message}");
-                        }
-                    }
-
-                    // Update content type
-                    existingLesson.ContentType = lesson.ContentType;
-
-                    // Handle new content based on type
-                    if (lesson.ContentType == "video")
-                    {
-                        existingLesson.Content = await _videoService.UploadVideoAsync(content);
-                    }
-                    else if (lesson.ContentType == "text")
-                    {
-                        using var reader = new StreamReader(content.OpenReadStream());
-                        existingLesson.Content = await reader.ReadToEndAsync();
-                    }
-                }
+                existingLesson.Description = lesson.Description;
 
                 await _context.SaveChangesAsync();
                 return true;
@@ -199,3 +157,4 @@ namespace ElCentre.Infrastructure.Repositories
         }
     }
 }
+
