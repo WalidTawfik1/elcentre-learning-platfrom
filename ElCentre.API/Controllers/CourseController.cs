@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
 using ElCentre.API.Helper;
 using ElCentre.Core.DTO;
+using ElCentre.Core.Entities;
 using ElCentre.Core.Interfaces;
+using ElCentre.Core.Services;
 using ElCentre.Core.Sharing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -12,8 +14,10 @@ namespace ElCentre.API.Controllers
 {
     public class CourseController : BaseController
     {
-        public CourseController(IUnitofWork work, IMapper mapper) : base(work, mapper)
+        private readonly INotificationService _notificationService;
+        public CourseController(IUnitofWork work, IMapper mapper, INotificationService notificationService) : base(work, mapper)
         {
+            _notificationService = notificationService;
         }
         /// <summary>
         /// Get all courses with pagination
@@ -269,6 +273,23 @@ namespace ElCentre.API.Controllers
 
                 var result = await work.PendingCourseRepository.UpdatePendingCourseAsync(
                     courseId, request.Decision, request.RejectionReason);
+
+                var course = await work.CourseRepository.GetByIdAsync(courseId);
+
+                var notification = new CourseNotification
+                {
+                    Title = request.Decision.ToLower() == "approve" ? "CourseApproved" : "CourseRejected",
+                    Message = request.Decision.ToLower() == "approve" 
+                        ? $"Congratulations Your course {course.Title} has been approved." 
+                        : $"Your course {course.Title} has been rejected. Reason: {request.RejectionReason}",
+                    CourseId = courseId,
+                    CreatedById = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value,
+                    CreatedByName = "Admin",
+                    CreatedAt = DateTime.Now,
+                    NotificationType = "Course Status",
+                };
+
+                await _notificationService.CourseStatusNotification(notification, course.InstructorId);
 
                 if (!result)
                 {

@@ -42,5 +42,10 @@ namespace ElCentre.Contracts.Hubs
         {
             await _notificationService.MarkAllCourseNotificationsAsReadAsync(userId, courseId);
         }
+
+        public async Task<CourseNotification> CreateCourseNotification(CourseNotification notification)
+        {
+            return await _notificationService.CreateCourseNotificationAsync(notification);
+        }
     }
 }

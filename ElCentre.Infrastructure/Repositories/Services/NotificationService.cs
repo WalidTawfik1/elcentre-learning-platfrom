@@ -21,6 +21,18 @@ namespace ElCentre.Infrastructure.Repositories.Services
             _dbContext = dbContext;
             _hubContext = hubContext;
         }
+
+        public async Task<CourseNotification> CourseStatusNotification(CourseNotification notification, string instructorId)
+        {
+            await _dbContext.CourseNotifications.AddAsync(notification);
+            await _dbContext.SaveChangesAsync();
+
+            await _hubContext.Clients.User(instructorId)
+                .SendAsync("ReceiveCourseNotification", notification);
+
+            return notification;
+        }
+
         public async Task<CourseNotification> CreateCourseNotificationAsync(CourseNotification notification)
         {
             // Add the notification to the database

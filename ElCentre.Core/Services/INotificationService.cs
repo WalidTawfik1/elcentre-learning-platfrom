@@ -5,6 +5,7 @@ namespace ElCentre.Core.Services
     public interface INotificationService
     {
         Task<CourseNotification> CreateCourseNotificationAsync(CourseNotification notification);
+        Task<CourseNotification> CourseStatusNotification(CourseNotification notification, string instructorId);
         Task<List<CourseNotification>> GetCourseNotificationsForUserAsync(string userId, int courseId, bool unreadOnly = false);
         Task MarkCourseNotificationAsReadAsync(int notificationId, string userId);
         Task MarkAllCourseNotificationsAsReadAsync(string userId, int courseId);
