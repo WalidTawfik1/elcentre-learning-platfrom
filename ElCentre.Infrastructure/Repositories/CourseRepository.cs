@@ -34,6 +34,12 @@ namespace ElCentre.Infrastructure.Repositories
         {
             if (addCourseDTO == null) return false;
 
+            // First get the instructor and category to satisfy required properties
+            var instructor = await context.Users.FindAsync(InstructorId);
+            var category = await context.Categories.FindAsync(addCourseDTO.CategoryId);
+            
+            if (instructor == null || category == null) return false;
+
             var course = new Course
             {
                 Title = addCourseDTO.Title,
@@ -42,7 +48,9 @@ namespace ElCentre.Infrastructure.Repositories
                 IsActive = addCourseDTO.IsActive,
                 DurationInHours = addCourseDTO.DurationInHours,
                 InstructorId = InstructorId,
+                Instructor = instructor,
                 CategoryId = addCourseDTO.CategoryId,
+                Category = category,
                 CourseStatus = "Pending",
             };
 
@@ -50,7 +58,7 @@ namespace ElCentre.Infrastructure.Repositories
             {
                 if (courseThumbnailService == null) return false;
                 var thumbnail = await courseThumbnailService.AddImageAsync(addCourseDTO.Thumbnail, addCourseDTO.Title);
-                course.Thumbnail = thumbnail;
+                course.Thumbnail = thumbnail ?? "https://drive.google.com/uc?export=view&id=1T27W79Al7X4MFaZPwLQF7dJaC-9E39dY";
             }
             else
             {
@@ -75,7 +83,10 @@ namespace ElCentre.Infrastructure.Repositories
 
             if (course == null) return false;
 
-            courseThumbnailService.DeleteImageAsync(course.Thumbnail);
+            if (course.Thumbnail != null)
+            {
+                courseThumbnailService.DeleteImageAsync(course.Thumbnail);
+            }
             context.Courses.Remove(course);
             await context.SaveChangesAsync();
             return true;
@@ -175,16 +186,33 @@ namespace ElCentre.Infrastructure.Repositories
                 .Where(c => c.InstructorId == InstructorId)
                 .FirstOrDefaultAsync(c => c.Id == updateCourseDTO.Id);
             if (course == null) return false;
+            
+            // Store the current thumbnail before mapping
+            var currentThumbnail = course.Thumbnail;
+            
+            // Map the DTO to the entity (excluding Thumbnail which is ignored in mapping)
             mapper.Map(updateCourseDTO, course);
+            
+            // Handle thumbnail separately
             if (updateCourseDTO.Thumbnail != null)
             {
-                courseThumbnailService.DeleteImageAsync(course.Thumbnail);
+                // Delete the old thumbnail only if it's not the default image
+                if (currentThumbnail != null && !currentThumbnail.Contains("drive.google.com"))
+                {
+                    courseThumbnailService.DeleteImageAsync(currentThumbnail);
+                }
                 var thumbnail = await courseThumbnailService.AddImageAsync(updateCourseDTO.Thumbnail, updateCourseDTO.Title);
-                course.Thumbnail = thumbnail;
+                course.Thumbnail = thumbnail; // thumbnail can be null if upload fails
             }
             else
             {
-                course.Thumbnail = course.Thumbnail;
+                // If no new thumbnail provided, keep the current one (can be null)
+                course.Thumbnail = currentThumbnail;
+            }
+
+            if(course.CourseStatus == "Rejected")
+            {
+                course.CourseStatus = "Pending";
             }
             await context.SaveChangesAsync();
             return true;

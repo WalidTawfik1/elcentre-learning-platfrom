@@ -96,21 +96,13 @@ namespace ElCentre.API.Controllers
                 if (result == null)
                 {
                     return BadRequest(new APIResponse(400, "Failed to add lesson, you may don't have permission to add it"));
-                }
-
-                // Notify all students in the course about the new lesson
-                var courseId = lesson.Module.CourseId;
-                var instructorName = HttpContext.User.FindFirst(ClaimTypes.GivenName)?.Value ?? "Instructor";
-                var notification = new CourseNotification
+                }                // Notify all students in the course about the new lesson
+                var module = await work.CourseModuleRepository.GetByIdAsync(lesson.ModuleId);
+                if (module != null)
                 {
-                    Title = "New Lesson Added",
-                    Message = $"A new lesson '{lesson.Title}' has been added",
-                    CourseId = courseId,
-                    CreatedById = InstructorId,
-                    CreatedByName = instructorName,
-                    NotificationType = "NewLesson"
-                };
-                await _notificationService.CreateCourseNotificationAsync(notification);
+                    var instructorName = HttpContext.User.FindFirst(ClaimTypes.GivenName)?.Value ?? "Instructor";
+                    await _notificationService.NotifyNewLessonAsync(module.CourseId, lesson.Title, InstructorId, instructorName);
+                }
 
                 return Ok(new APIResponse(200, "Lesson added successfully"));
             }

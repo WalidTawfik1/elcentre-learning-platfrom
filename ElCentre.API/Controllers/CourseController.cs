@@ -269,27 +269,25 @@ namespace ElCentre.API.Controllers
                     (request.Decision.ToLower() != "approve" && request.Decision.ToLower() != "reject"))
                 {
                     return BadRequest(new APIResponse(400, "Decision must be either 'approve' or 'reject'."));
-                }
-
-                var result = await work.PendingCourseRepository.UpdatePendingCourseAsync(
+                }                var result = await work.PendingCourseRepository.UpdatePendingCourseAsync(
                     courseId, request.Decision, request.RejectionReason);
 
                 var course = await work.CourseRepository.GetByIdAsync(courseId);
-
-                var notification = new CourseNotification
+                
+                // Send course status notification using the enhanced service
+                var adminId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var adminName = HttpContext.User.FindFirst(ClaimTypes.GivenName)?.Value ?? "Admin";
+                
+                if (!string.IsNullOrEmpty(adminId) && course != null)
                 {
-                    Title = request.Decision.ToLower() == "approve" ? "CourseApproved" : "CourseRejected",
-                    Message = request.Decision.ToLower() == "approve" 
-                        ? $"Congratulations Your course {course.Title} has been approved." 
-                        : $"Your course {course.Title} has been rejected. Reason: {request.RejectionReason}",
-                    CourseId = courseId,
-                    CreatedById = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value,
-                    CreatedByName = "Admin",
-                    CreatedAt = DateTime.Now,
-                    NotificationType = "Course Status",
-                };
-
-                await _notificationService.CourseStatusNotification(notification, course.InstructorId);
+                    await _notificationService.NotifyCourseStatusChangeAsync(
+                        courseId, 
+                        request.Decision, 
+                        course.InstructorId, 
+                        adminId, 
+                        adminName, 
+                        request.RejectionReason);
+                }
 
                 if (!result)
                 {

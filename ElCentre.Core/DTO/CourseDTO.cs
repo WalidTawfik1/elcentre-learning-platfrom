@@ -69,7 +69,7 @@ namespace ElCentre.Core.DTO
 
         public decimal Price { get; set; }
 
-        public IFormFileCollection Thumbnail { get; set; }
+        public IFormFileCollection? Thumbnail { get; set; }
 
         public bool IsActive { get; set; }
 

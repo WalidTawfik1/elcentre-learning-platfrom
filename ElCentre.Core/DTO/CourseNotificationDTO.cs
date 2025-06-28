@@ -11,6 +11,7 @@ namespace ElCentre.Core.DTO
         public string Title { get; set; }
         public string Message { get; set; }
         public int CourseId { get; set; }
+        public string CourseName { get; set; }
         public string NotificationType { get; set; } = "Custom";
     
     }

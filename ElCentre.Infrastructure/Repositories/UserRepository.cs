@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using ElCentre.Core.DTO;
 using ElCentre.Core.Interfaces;
+using ElCentre.Core.Services;
 using ElCentre.Infrastructure.Data;
-using ElCentre.Infrastructure.Repositories.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -55,7 +55,7 @@ namespace ElCentre.Infrastructure.Repositories
 
         }
 
-        public async Task<UserDTO> GetUserProfileAsync(string Id)
+        public async Task<UserDTO?> GetUserProfileAsync(string Id)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == Id);
             if (user == null)
@@ -78,24 +78,31 @@ namespace ElCentre.Infrastructure.Repositories
             {
                 throw new KeyNotFoundException($"User with ID {Id} not found.");
             }
+
+            var currentProfilePicture = user.ProfilePicture;
+
             _mapper.Map(source: userDTO, user);
 
             if (userDTO.ProfilePicture != null)
             {
-                if(user.ProfilePicture != null)
+                // Delete the old profile picture if it exists
+                if (user.ProfilePicture != null)
                 {
                     _profilePicture.DeleteImageAsync(user.ProfilePicture);
-                    var profilePicture = await _profilePicture.AddImageAsync(userDTO.ProfilePicture, user.Id);
-                    user.ProfilePicture = profilePicture;
                 }
-                else
+                
+                var profilePicture = await _profilePicture.AddImageAsync(userDTO.ProfilePicture, user.Id);
+                if (profilePicture != null)
                 {
-                    var profilePicture = await _profilePicture.AddImageAsync(userDTO.ProfilePicture, user.Id);
                     user.ProfilePicture = profilePicture;
                 }
             }
+            else
+            {
+                user.ProfilePicture = currentProfilePicture; // Keep the old profile picture if no new one is provided
+            }
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
             return _mapper.Map<UpdateUserDTO>(user);
 

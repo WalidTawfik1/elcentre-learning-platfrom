@@ -63,7 +63,7 @@ namespace ElCentre.API.Middlewares
             });
             if (dateNow - timeStamp < rateLimitWindow)
             {
-                if (count >= 20)
+                if (count >= 30)
                 {
                     return false;
                 }

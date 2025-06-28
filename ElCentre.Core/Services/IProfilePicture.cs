@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ElCentre.Infrastructure.Repositories.Services
+namespace ElCentre.Core.Services
 {
     public interface IProfilePicture
     {
-        Task<string> AddImageAsync(IFormFileCollection files, string src);
+        Task<string?> AddImageAsync(IFormFileCollection files, string src);
 
         void DeleteImageAsync(string src);
     }
