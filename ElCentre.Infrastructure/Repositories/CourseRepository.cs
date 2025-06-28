@@ -58,11 +58,11 @@ namespace ElCentre.Infrastructure.Repositories
             {
                 if (courseThumbnailService == null) return false;
                 var thumbnail = await courseThumbnailService.AddImageAsync(addCourseDTO.Thumbnail, addCourseDTO.Title);
-                course.Thumbnail = thumbnail ?? "https://drive.google.com/uc?export=view&id=1T27W79Al7X4MFaZPwLQF7dJaC-9E39dY";
+                course.Thumbnail = thumbnail ?? "https://i.ibb.co/V0D34Xty/istockphoto-1147544806-170667a.jpg";
             }
             else
             {
-                course.Thumbnail = "https://drive.google.com/uc?export=view&id=1T27W79Al7X4MFaZPwLQF7dJaC-9E39dY";
+                course.Thumbnail = "https://i.ibb.co/V0D34Xty/istockphoto-1147544806-170667a.jpg";
             }
 
             await context.Courses.AddAsync(course);
@@ -196,8 +196,8 @@ namespace ElCentre.Infrastructure.Repositories
             // Handle thumbnail separately
             if (updateCourseDTO.Thumbnail != null)
             {
-                // Delete the old thumbnail only if it's not the default image
-                if (currentThumbnail != null && !currentThumbnail.Contains("drive.google.com"))
+                // Delete the old thumbnail
+                if (currentThumbnail != null)
                 {
                     courseThumbnailService.DeleteImageAsync(currentThumbnail);
                 }

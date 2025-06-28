@@ -69,10 +69,6 @@ namespace ElCentre.Infrastructure.Repositories.Services
             if (string.IsNullOrEmpty(src))
                 return;
 
-            // Don't delete default images (external URLs)  
-            if (src.Contains("http"))
-                return;
-
             var info = file.GetFileInfo(src);
             var root = info.PhysicalPath;
             if (File.Exists(root))
