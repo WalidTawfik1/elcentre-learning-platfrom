@@ -26,6 +26,8 @@ namespace ElCentre.Infrastructure.Data
         public DbSet<StudentQuiz> StudentQuizzes { get; set; }
         public DbSet<CourseNotification> CourseNotifications { get; set; }
         public DbSet<NotificationReadStatus> NotificationReadStatuses { get; set; }
+        public DbSet<LessonQuestion> LessonQuestions { get; set; }
+        public DbSet<LessonAnswer> LessonAnswers { get; set; }
 
         public ElCentreDbContext(DbContextOptions<ElCentreDbContext> options) : base(options)
         {

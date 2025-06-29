@@ -33,5 +33,6 @@ namespace ElCentre.Core.Entities
         public CourseModule Module { get; set; }
 
         public ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
+        public ICollection<LessonQuestion> Questions { get; set; } = new List<LessonQuestion>();
     }
 }

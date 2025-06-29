@@ -36,7 +36,9 @@ namespace ElCentre.Core.Entities
         public const string QuizAvailable = "QuizAvailable";
         public const string GradePosted = "GradePosted";
         public const string AssignmentDue = "AssignmentDue";
-        
+        public const string NewQuestion = "NewQuestion";
+        public const string NewAnswer = "NewAnswer";
+
         // Admin/Course status notifications
         public const string CourseApproved = "CourseApproved";
         public const string CourseRejected = "CourseRejected";
