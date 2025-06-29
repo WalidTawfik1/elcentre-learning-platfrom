@@ -4,6 +4,7 @@ using ElCentre.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ElCentre.Infrastructure.Migrations
 {
     [DbContext(typeof(ElCentreDbContext))]
-    partial class ElCentreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250629204202_Added_Edited_Bool_to_Q_A_Tables")]
+    partial class Added_Edited_Bool_to_Q_A_Tables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

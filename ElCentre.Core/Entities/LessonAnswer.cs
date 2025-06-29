@@ -22,6 +22,8 @@ namespace ElCentre.Core.Entities
         public string CreatedByName { get; set; }
         public string CreatorImage { get; set; }
         public bool IsInstructor { get; set; } = false;
+        public bool IsEdited { get; set; } = false;
+        public DateTime? EditedAt { get; set; } = null;
 
         [Required]
         [ForeignKey("Question")]

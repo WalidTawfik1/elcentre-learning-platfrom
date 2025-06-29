@@ -149,6 +149,8 @@ namespace ElCentre.Infrastructure.Repositories
                 return false; // Answer not found
             }
             answerEntity.Answer = answer;
+            answerEntity.IsEdited = true; // Mark as edited
+            answerEntity.EditedAt = DateTime.UtcNow; // Update edited timestamp
             await _context.SaveChangesAsync();
             return true;
 
@@ -162,6 +164,8 @@ namespace ElCentre.Infrastructure.Repositories
                 return false; // Question not found
             }
             questionEntity.Question = question;
+            questionEntity.IsEdited = true; // Mark as edited
+            questionEntity.EditedAt = DateTime.UtcNow; // Update edited timestamp
             await _context.SaveChangesAsync();
             return true;
         }
