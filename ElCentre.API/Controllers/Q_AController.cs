@@ -205,8 +205,25 @@ namespace ElCentre.API.Controllers
             {
                 return StatusCode(500, new APIResponse(500, $"An unexpected error occurred: {ex.Message}."));
             }
+        }
 
-
+        [Authorize(Roles = "Instructor")]
+        [HttpPut("pin-question/{questionId}")]
+        public async Task<IActionResult> PinQuestion(int questionId, bool isPinned)
+        {
+            try
+            {
+                var result = await work.Q_ARepository.PinQuestionAsync(questionId, isPinned);
+                if (result)
+                {
+                    return Ok(new APIResponse(200, "Question pin status updated successfully."));
+                }
+                return BadRequest(new APIResponse(400, "Failed to update question pin status. Please try again."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new APIResponse(500, $"An unexpected error occurred: {ex.Message}."));
+            }
         }
     }
 }

@@ -15,7 +15,7 @@ namespace ElCentre.Core.Entities
         public int Id { get; set; }
         [Required]
         public string Answer { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
         [Required]
         public string CreatedById { get; set; }
         [Required]

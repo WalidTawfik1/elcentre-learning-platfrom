@@ -141,6 +141,18 @@ namespace ElCentre.Infrastructure.Repositories
             return questions;
         }
 
+        public async Task<bool> PinQuestionAsync(int questionId, bool isPinned)
+        {
+            var question = await _context.LessonQuestions.FindAsync(questionId);
+            if (question == null)
+            {
+                return false; // Question not found
+            }
+            question.IsPinned = isPinned;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<bool> UpdateAnswerAsync(int answerId, string createdById, string answer)
         {
             var answerEntity = await _context.LessonAnswers.Where(answer => answer.Id == answerId && answer.CreatedById == createdById).FirstOrDefaultAsync();
@@ -150,7 +162,7 @@ namespace ElCentre.Infrastructure.Repositories
             }
             answerEntity.Answer = answer;
             answerEntity.IsEdited = true; // Mark as edited
-            answerEntity.EditedAt = DateTime.UtcNow; // Update edited timestamp
+            answerEntity.EditedAt = DateTime.Now; // Update edited timestamp
             await _context.SaveChangesAsync();
             return true;
 
@@ -165,7 +177,7 @@ namespace ElCentre.Infrastructure.Repositories
             }
             questionEntity.Question = question;
             questionEntity.IsEdited = true; // Mark as edited
-            questionEntity.EditedAt = DateTime.UtcNow; // Update edited timestamp
+            questionEntity.EditedAt = DateTime.Now; // Update edited timestamp
             await _context.SaveChangesAsync();
             return true;
         }

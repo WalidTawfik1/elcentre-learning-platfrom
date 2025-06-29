@@ -17,7 +17,7 @@ namespace ElCentre.Core.Entities
         public string SenderId { get; set; }
         [Required]
         public string Content { get; set; }
-        public DateTime SentAt { get; set; } = DateTime.UtcNow;
+        public DateTime SentAt { get; set; } = DateTime.Now;
         public bool IsInstructor { get; set; } = false;
 
     }

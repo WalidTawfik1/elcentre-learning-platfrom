@@ -14,7 +14,7 @@ namespace ElCentre.Core.Entities
         public int Id { get; set; }
         [Required]
         public string Question { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
         [Required]
         public string CreatedById { get; set; }
         [Required]
@@ -23,6 +23,7 @@ namespace ElCentre.Core.Entities
         public bool IsInstructor { get; set; } = false;
         public bool IsEdited { get; set; } = false;
         public DateTime? EditedAt { get; set; } = null;
+        public bool IsPinned { get; set; } = false;
 
         [Required]
         [ForeignKey("Lesson")]

@@ -17,5 +17,6 @@ namespace ElCentre.Core.Interfaces
         Task<bool> DeleteAnswerAsync(int answerId, string creatorId);
         Task<bool> UpdateQuestionAsync(int questionId, string createdById, string question);
         Task<bool> UpdateAnswerAsync(int answerId, string createdById, string answer);
+        Task<bool> PinQuestionAsync(int questionId, bool isPinned);
     }
 }
