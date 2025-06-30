@@ -399,7 +399,7 @@ namespace ElCentre.API.Controllers
                 });
 
                 // Return to frontend with token and user status
-                return Redirect($"http://localhost:8080/google-bridge?token={token}&isNewUser={isNewUser}&role={user.UserType}");
+                return Redirect($"https://elcentre-learn.vercel.app/google-bridge?token={token}&isNewUser={isNewUser}&role={user.UserType}");
             }
             catch (Exception ex)
             {
