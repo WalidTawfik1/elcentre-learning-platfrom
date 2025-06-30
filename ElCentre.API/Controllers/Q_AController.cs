@@ -116,7 +116,7 @@ namespace ElCentre.API.Controllers
                     return Unauthorized(new APIResponse(401, "Please login or register."));
                 }
 
-                var result = await work.Q_ARepository.DeleteQuestionAsync(questionId, userId);
+                var result = await work.Q_ARepository.DeleteQuestionAsync(questionId);
                 if (result)
                 {
                     return Ok(new APIResponse(200, "Question deleted successfully."));
@@ -140,7 +140,7 @@ namespace ElCentre.API.Controllers
                     return Unauthorized(new APIResponse(401, "Please login or register."));
                 }
 
-                var result = await work.Q_ARepository.DeleteAnswerAsync(answerId, userId);
+                var result = await work.Q_ARepository.DeleteAnswerAsync(answerId);
                 if (result)
                 {
                     return Ok(new APIResponse(200, "Answer deleted successfully."));
@@ -219,6 +219,37 @@ namespace ElCentre.API.Controllers
                     return Ok(new APIResponse(200, "Question pin status updated successfully."));
                 }
                 return BadRequest(new APIResponse(400, "Failed to update question pin status. Please try again."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new APIResponse(500, $"An unexpected error occurred: {ex.Message}."));
+            }
+        }
+
+        [HttpPost("report-qa")]
+        public async Task<IActionResult> ReportQA(int? questionId, int? answerId, string reason)
+        {
+            if (questionId == null && answerId == null)
+            {
+                return BadRequest(new APIResponse(400, "Invalid request. Either questionId or answerId must be provided."));
+            }
+            if (string.IsNullOrEmpty(reason))
+            {
+                return BadRequest(new APIResponse(400, "Reason for reporting is required."));
+            }
+            try
+            {
+                var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Unauthorized(new APIResponse(401, "Please login or register."));
+                }
+                var result = await work.Q_ARepository.ReportQA(questionId, answerId, userId, reason);
+                if (result)
+                {
+                    return Ok(new APIResponse(200, "Report submitted successfully."));
+                }
+                return BadRequest(new APIResponse(400, "Failed to submit report. Please try again."));
             }
             catch (Exception ex)
             {

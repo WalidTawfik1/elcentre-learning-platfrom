@@ -38,6 +38,8 @@ namespace ElCentre.Core.Entities
         public const string AssignmentDue = "AssignmentDue";
         public const string NewQuestion = "NewQuestion";
         public const string NewAnswer = "NewAnswer";
+        public const string QuestionReported = "QuestionReported";
+        public const string AnswerReported = "AnswerReported";
 
         // Admin/Course status notifications
         public const string CourseApproved = "CourseApproved";

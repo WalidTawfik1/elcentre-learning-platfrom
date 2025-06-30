@@ -100,9 +100,9 @@ namespace ElCentre.Infrastructure.Repositories
             return true;
         }
 
-        public async Task<bool> DeleteAnswerAsync(int answerId, string creatorId)
+        public async Task<bool> DeleteAnswerAsync(int answerId)
         {
-            var answer = await _context.LessonAnswers.Where(a => a.Id == answerId && a.CreatedById == creatorId).FirstOrDefaultAsync();
+            var answer = await _context.LessonAnswers.Where(a => a.Id == answerId).FirstOrDefaultAsync();
             if (answer == null)
             {
                 return false; // Answer not found
@@ -112,9 +112,9 @@ namespace ElCentre.Infrastructure.Repositories
             return true;
         }
 
-        public async Task<bool> DeleteQuestionAsync(int questionId, string creatorId)
+        public async Task<bool> DeleteQuestionAsync(int questionId)
         {
-            var question = await _context.LessonQuestions.Where(q => q.Id == questionId && q.CreatedById == creatorId).FirstOrDefaultAsync();
+            var question = await _context.LessonQuestions.Where(q => q.Id == questionId).FirstOrDefaultAsync();
             if (question == null)
             {
                 return false; // Question not found
@@ -149,6 +149,76 @@ namespace ElCentre.Infrastructure.Repositories
                 return false; // Question not found
             }
             question.IsPinned = isPinned;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> ReportQA(int? questionId, int? answerId, string userID, string reason)
+        {
+            if (questionId != null && answerId == null)
+            {
+                // Report a question
+                var question = await _context.LessonQuestions.FindAsync(questionId);
+                var lesson = await _context.Lessons
+                    .Include(l => l.Module.Course)
+                    .FirstOrDefaultAsync(l => l.Id == question.LessonId);
+                var course = await _context.Courses.FindAsync(lesson.Module.Course.Id);
+                var user = await _context.Users.FindAsync(userID);
+                var userFullName = $"{user.FirstName} {user.LastName}";
+                var userImage = user.ProfilePicture; // Assuming ProfilePicture is a string URL or path
+                if (question == null || course == null || question.IsInstructor)
+                {
+                    return false; // Question or course not found
+                }
+                var notification = new CourseNotification
+                {
+                    Title = "Question Reported",
+                    Message = $"{userFullName} has reported a question: {question.Question}. Reason: {reason}",
+                    CourseId = course.Id,
+                    CourseName = course.Title,
+                    CreatedById = userID,
+                    CreatedByName = userFullName,
+                    CreatorImage = userImage,
+                    NotificationType = NotificationTypes.QuestionReported,
+                    TargetUserId = course.InstructorId // Notify the instructor
+                };
+                await _notification.CreateCourseNotificationAsync(notification);
+
+            }
+            else if (answerId != null && questionId == null)
+            {
+                // Report an answer
+                var answer = await _context.LessonAnswers.FindAsync(answerId);
+                var question = await _context.LessonQuestions.FindAsync(answer.QuestionId);
+                var lesson = await _context.Lessons
+                    .Include(l => l.Module.Course)
+                    .FirstOrDefaultAsync(l => l.Id == question.LessonId);
+                var course = await _context.Courses.FindAsync(lesson.Module.Course.Id);
+                var user = await _context.Users.FindAsync(userID);
+                var userFullName = $"{user.FirstName} {user.LastName}";
+                var userImage = user.ProfilePicture; // Assuming ProfilePicture is a string URL or path
+                if (answer == null || course == null || answer.IsInstructor)
+                {
+                    return false; // Answer or course not found
+                }
+                var notification = new CourseNotification
+                {
+                    Title = "Answer Reported",
+                    Message = $"{userFullName} has reported an answer: {answer.Answer}. Reason: {reason}",
+                    CourseId = course.Id,
+                    CourseName = course.Title,
+                    CreatedById = userID,
+                    CreatedByName = userFullName,
+                    CreatorImage = userImage,
+                    NotificationType = NotificationTypes.AnswerReported,
+                    TargetUserId = course.InstructorId // Notify the instructor
+                };
+                await _notification.CreateCourseNotificationAsync(notification);
+            }
+            else
+            {
+                return false; // Invalid report parameters
+            }
             await _context.SaveChangesAsync();
             return true;
         }
