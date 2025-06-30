@@ -280,10 +280,10 @@ namespace ElCentre.API.Controllers
         /// <returns></returns>
         [AllowAnonymous]
         [HttpGet("google-login")]
-        public IActionResult GoogleLogin(string role = "Student")
+        public IActionResult GoogleLogin(string? role = "Student")
         {
             // Validate role
-            if (role != "Student" && role != "Instructor")
+            if (role != "Student" && role != "Instructor" && role != null)
             {
                 return BadRequest(new APIResponse(400, "Invalid role. Role must be either 'Student' or 'Instructor'."));
             }
@@ -354,6 +354,10 @@ namespace ElCentre.API.Controllers
                             EmailConfirmed = true,
                             UserType = role,
                             CreatedAt = DateTime.Now,
+                            Gender = info.Principal.FindFirstValue(ClaimTypes.Gender) ?? "Unknown",
+                            DateOfBirth = DateOnly.TryParse(info.Principal.FindFirstValue(ClaimTypes.DateOfBirth), out var parsedDate)
+                                ? parsedDate : DateOnly.FromDateTime(DateTime.Now),
+                            PhoneNumber = info.Principal.FindFirstValue(ClaimTypes.MobilePhone) ?? "0123456789"                           
                         };
 
                         var result = await _userManager.CreateAsync(user);
