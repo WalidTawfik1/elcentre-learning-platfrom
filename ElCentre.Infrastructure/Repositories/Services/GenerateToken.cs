@@ -33,7 +33,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
                 new Claim(ClaimTypes.GivenName, $"{user.FirstName ?? ""} {user.LastName ?? ""}".Trim()),
-                new Claim("ProfilePicture", user.ProfilePicture?? "https://drive.google.com/uc?export=view&id=1KktjLJLwGQvMfsD8hkcpoApe0YYbmcO_")
+                new Claim("ProfilePicture", user.ProfilePicture?? "https://i.ibb.co/XrtyPzqW/user.png")
             };
             foreach (var item in role)
             {

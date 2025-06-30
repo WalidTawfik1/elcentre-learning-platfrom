@@ -165,7 +165,7 @@ namespace ElCentre.Infrastructure.Repositories
                 var course = await _context.Courses.FindAsync(lesson.Module.Course.Id);
                 var user = await _context.Users.FindAsync(userID);
                 var userFullName = $"{user.FirstName} {user.LastName}";
-                var userImage = user.ProfilePicture; // Assuming ProfilePicture is a string URL or path
+                var userImage = user.ProfilePicture ?? "https://i.ibb.co/XrtyPzqW/user.png";
                 if (question == null || course == null || question.IsInstructor)
                 {
                     return false; // Question or course not found
@@ -196,7 +196,7 @@ namespace ElCentre.Infrastructure.Repositories
                 var course = await _context.Courses.FindAsync(lesson.Module.Course.Id);
                 var user = await _context.Users.FindAsync(userID);
                 var userFullName = $"{user.FirstName} {user.LastName}";
-                var userImage = user.ProfilePicture; // Assuming ProfilePicture is a string URL or path
+                var userImage = user.ProfilePicture ?? "https://i.ibb.co/XrtyPzqW/user.png";
                 if (answer == null || course == null || answer.IsInstructor)
                 {
                     return false; // Answer or course not found
