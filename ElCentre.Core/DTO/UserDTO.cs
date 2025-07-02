@@ -19,6 +19,8 @@ namespace ElCentre.Core.DTO
         public DateOnly DateOfBirth { get; set; }
         public string? Bio { get; set; }
         public string? ProfilePicture { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
     public record UpdateUserDTO
     {

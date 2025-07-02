@@ -17,6 +17,8 @@ namespace ElCentre.Core.Interfaces
         Task<IEnumerable<CourseDTO>> GetAllAsync(CourseParams courseParams);
         Task<IEnumerable<CourseDTO>> GetAllbyInstructorIdAsync(string InstructorId);
         Task<IEnumerable<CourseDTO>> GetAllApprovedbyInstructorIdAsync(string InstructorId);
+        Task<bool> AdminDeleteAsync(int courseId, bool delete);
+        Task<IEnumerable<CourseDTO>> GetAllForAdminAsync(CourseParams courseParams);
 
     }
 }

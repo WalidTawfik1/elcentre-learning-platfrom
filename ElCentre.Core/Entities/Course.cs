@@ -27,6 +27,8 @@ namespace ElCentre.Core.Entities
 
         public bool IsActive { get; set; } = true;
 
+        public bool IsDeleted { get; set; } = false;
+
         public int DurationInHours { get; set; }
 
         public double Rating { get; set; }

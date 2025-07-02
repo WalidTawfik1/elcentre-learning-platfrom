@@ -1,4 +1,5 @@
-﻿using ElCentre.Core.DTO;
+﻿using CloudinaryDotNet;
+using ElCentre.Core.DTO;
 using ElCentre.Core.Entities;
 using ElCentre.Core.Interfaces;
 using ElCentre.Core.Services;
@@ -9,6 +10,7 @@ using Org.BouncyCastle.Crypto.Macs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
@@ -28,19 +30,22 @@ namespace ElCentre.Infrastructure.Repositories.Services
         private readonly ElCentreDbContext _context;
         private readonly IPaymobCashInBroker _broker;
         private readonly IEmailService _emailService;
+        private readonly INotificationService _notification;
 
         public PaymobService(
             ElCentreDbContext context,
             IConfiguration configuration,
             IUnitofWork unitofWork,
             IPaymobCashInBroker broker,
-            IEmailService emailService)
+            IEmailService emailService,
+            INotificationService notification)
         {
             _context = context;
             _configuration = configuration;
             _unitofWork = unitofWork;
             _broker = broker;
             _emailService = emailService;
+            _notification = notification;
         }
 
         public async Task<(Enrollment Enrollment, string RedirectUrl)> ProcessPaymentAsync(int enrollmentId, string paymentMethod)
@@ -134,7 +139,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
             };
 
             // Create HTTP request for Paymob's intention API
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, "https://accept.paymob.com/v1/intention/");
+            var requestMessage = new HttpRequestMessage(System.Net.Http.HttpMethod.Post, "https://accept.paymob.com/v1/intention/");
             requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Token", secretKey);
             requestMessage.Content = JsonContent.Create(payload);
 
@@ -208,6 +213,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
 
             var enrollment = await _context.Enrollments
                 .Include(e => e.Student)
+                .Include(e => e.Course)
                 .FirstOrDefaultAsync(e => e.Id == payment.EnrollmentId);
 
             if (enrollment == null)
@@ -218,6 +224,21 @@ namespace ElCentre.Infrastructure.Repositories.Services
             // Update enrollment status and payment status
             enrollment.PaymentStatus = "Success";
             payment.Status = "Success";
+
+            var notfication = new CourseNotification
+            {
+                Title = "Course Purchase Successful",
+                Message = $"🎊You have successfully enrolled in '{enrollment.Course?.Title ?? "Unknown Course"}'. Welcome to the course!🎊",
+                CourseId = enrollment.CourseId,
+                CourseName = enrollment.Course?.Title ?? "Unknown Course",
+                CreatedById = "System",
+                CreatedByName = "ElCentre System",
+                CreatorImage = "https://i.ibb.co/YFr894B3/admin.png",
+                NotificationType = NotificationTypes.EnrollmentConfirmed,
+                TargetUserId = enrollment.StudentId,
+                CreatedAt = DateTime.Now
+            };
+            await _notification.CreateCourseNotificationAsync(notfication);
 
             await _context.SaveChangesAsync();
 

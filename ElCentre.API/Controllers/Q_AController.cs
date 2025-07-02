@@ -216,7 +216,11 @@ namespace ElCentre.API.Controllers
                 var result = await work.Q_ARepository.PinQuestionAsync(questionId, isPinned);
                 if (result)
                 {
-                    return Ok(new APIResponse(200, "Question pin status updated successfully."));
+                    if (isPinned)
+                    {
+                        return Ok(new APIResponse(200, "Question pinned successfully."));
+                    }
+                    return Ok(new APIResponse(200, "Question unpinned successfully."));
                 }
                 return BadRequest(new APIResponse(400, "Failed to update question pin status. Please try again."));
             }

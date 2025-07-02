@@ -269,23 +269,24 @@ namespace ElCentre.API.Controllers
                     (request.Decision.ToLower() != "approve" && request.Decision.ToLower() != "reject"))
                 {
                     return BadRequest(new APIResponse(400, "Decision must be either 'approve' or 'reject'."));
-                }                var result = await work.PendingCourseRepository.UpdatePendingCourseAsync(
+                }
+                var result = await work.PendingCourseRepository.UpdatePendingCourseAsync(
                     courseId, request.Decision, request.RejectionReason);
 
                 var course = await work.CourseRepository.GetByIdAsync(courseId);
-                
+
                 // Send course status notification using the enhanced service
                 var adminId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 var adminName = HttpContext.User.FindFirst(ClaimTypes.GivenName)?.Value ?? "Admin";
-                
+
                 if (!string.IsNullOrEmpty(adminId) && course != null)
                 {
                     await _notificationService.NotifyCourseStatusChangeAsync(
-                        courseId, 
-                        request.Decision, 
-                        course.InstructorId, 
-                        adminId, 
-                        adminName, 
+                        courseId,
+                        request.Decision,
+                        course.InstructorId,
+                        adminId,
+                        adminName,
                         request.RejectionReason);
                 }
 
@@ -306,5 +307,53 @@ namespace ElCentre.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Delete a course by admin
+        /// </summary>
+        /// <param name="courseId"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin")]
+        [HttpPut("delete-course-admin/{courseId}")]
+        public async Task<IActionResult> AdminDeleteCourse(int courseId, bool delete)
+        {
+            try
+            {
+                var result = await work.CourseRepository.AdminDeleteAsync(courseId, delete);
+                if (!result)
+                {
+                    return BadRequest(new APIResponse(400, "Failed to delete course."));
+                }
+                if (delete)
+                {
+                    return Ok(new APIResponse(200, "Course deleted successfully."));
+                }
+                return Ok(new APIResponse(200, "Course restored successfully."));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new APIResponse(400, ex.Message));
+            }
+        }
+
+        /// <summary>
+        /// Get all courses for admin with pagination
+        /// </summary>
+        /// <param name="courseParams"></param>
+        /// <returns></returns>
+        [Authorize(Roles = "Admin")]
+        [HttpGet("get-all-courses-for-admin")]
+        public async Task<IActionResult> GetAllCoursesForAdmin([FromQuery] CourseParams courseParams)
+        {
+            try
+            {
+                var courses = await work.CourseRepository.GetAllForAdminAsync(courseParams);
+                var totalcount = await work.CourseRepository.CountAsync();
+                return Ok(new Pagination<CourseDTO>(courseParams.pagenum, courseParams.pagesize, totalcount, courses));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

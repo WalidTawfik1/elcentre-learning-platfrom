@@ -71,6 +71,14 @@ namespace ElCentre.Infrastructure.Repositories
             return true;
         }
 
+        public async Task<bool> AdminDeleteAsync(int courseId, bool delete)
+        {
+            var course = await context.Courses.FindAsync(courseId);
+            if (course == null) return false;
+            course.IsDeleted = delete; // Soft delete
+            await context.SaveChangesAsync();
+            return true;
+        }
 
         public async Task<bool> DeleteAsync(int courseId, string InstructorId)
         {
@@ -87,7 +95,7 @@ namespace ElCentre.Infrastructure.Repositories
             {
                 courseThumbnailService.DeleteImageAsync(course.Thumbnail);
             }
-            context.Courses.Remove(course);
+            course.IsDeleted = true; // Soft delete
             await context.SaveChangesAsync();
             return true;
         }
@@ -99,7 +107,7 @@ namespace ElCentre.Infrastructure.Repositories
                  .Include(c => c.Instructor)
                  .Include(c => c.Modules)
                  .Include(c => c.Reviews).ThenInclude(r => r.User)
-                 .Where(c => c.InstructorId == InstructorId && c.CourseStatus == "Approved")
+                 .Where(c => c.InstructorId == InstructorId && c.CourseStatus == "Approved" && !c.IsDeleted)
                  .AsNoTracking();
             var result = mapper.Map<List<CourseDTO>>(courses);
             return result;
@@ -112,18 +120,30 @@ namespace ElCentre.Infrastructure.Repositories
                 .Include(c => c.Instructor)
                 .Include(c => c.Modules)
                 .Include(c => c.Reviews).ThenInclude(r => r.User)
-                .Where(c => c.CourseStatus == "Approved" && c.IsActive)
+                .Where(c => c.CourseStatus == "Approved" && c.IsActive && !c.IsDeleted)
                 .AsNoTracking();
 
-            // Search
+            //filter by search
             if (!string.IsNullOrEmpty(courseParams.search))
             {
-                var searchword = courseParams.search.Split(' ');
-                query = query.Where(m => searchword.All(
-                word => m.Title.ToLower().Contains(word.ToLower())
-                || //or
-                m.Description.ToLower().Contains(word.ToLower())
-                ));
+                var rawSearchWords = courseParams.search.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                // Replace ه with ة only when it's the last character of each word
+                var normalizedSearchWords = rawSearchWords.Select(word =>
+                    word.EndsWith('ه') ? word.Substring(0, word.Length - 1) + 'ة' : word
+                ).ToArray();
+
+                if (normalizedSearchWords.Any())
+                {
+                    // Match ANY of the search words (name/description)
+                    query = query.Where(m =>
+                        normalizedSearchWords.Any(word =>
+                            m.Title.ToLower().Contains(word.ToLower()) ||
+                            m.Description.ToLower().Contains(word.ToLower()) ||
+                            m.Category.Name.ToLower().Contains(word.ToLower())
+                        )
+                    );
+                }
             }
 
             // Filter by category
@@ -174,6 +194,70 @@ namespace ElCentre.Infrastructure.Repositories
                 .AsNoTracking();
             var result = mapper.Map<List<CourseDTO>>(courses);
             return result;
+        }
+
+        public async Task<IEnumerable<CourseDTO>> GetAllForAdminAsync(CourseParams courseParams)
+        {
+            var query = context.Courses
+                .Include(c => c.Category)
+                .Include(c => c.Instructor)
+                .Include(c => c.Modules)
+                .Include(c => c.Reviews).ThenInclude(r => r.User)
+                .AsQueryable();
+
+            //filter by search
+            if (!string.IsNullOrEmpty(courseParams.search))
+            {
+                var rawSearchWords = courseParams.search.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                // Replace ه with ة only when it's the last character of each word
+                var normalizedSearchWords = rawSearchWords.Select(word =>
+                    word.EndsWith('ه') ? word.Substring(0, word.Length - 1) + 'ة' : word
+                ).ToArray();
+
+                if (normalizedSearchWords.Any())
+                {
+                    // Match ANY of the search words (name/description)
+                    query = query.Where(m =>
+                        normalizedSearchWords.Any(word =>
+                            m.Title.ToLower().Contains(word.ToLower()) ||
+                            m.Description.ToLower().Contains(word.ToLower()) ||
+                            m.Category.Name.ToLower().Contains(word.ToLower())
+                        )
+                    );
+                }
+            }
+            // Filter by category
+            if (courseParams.categoryId.HasValue)
+                query = query.Where(m => m.CategoryId == courseParams.categoryId);
+            // Filter by price
+            if (courseParams.minPrice != null && courseParams.maxPrice != null)
+            {
+                query = query.Where(m => m.Price >= courseParams.minPrice && m.Price <= courseParams.maxPrice);
+            }
+            else if (courseParams.minPrice != null)
+            {
+                query = query.Where(m => m.Price >= courseParams.minPrice);
+            }
+            else if (courseParams.maxPrice != null)
+            {
+                query = query.Where(m => m.Price <= courseParams.maxPrice);
+            }
+            if (!string.IsNullOrEmpty(courseParams.sort))
+            {
+                query = courseParams.sort switch
+                {
+                    "PriceAsc" => query.OrderBy(m => m.Price),
+                    "PriceDesc" => query.OrderByDescending(m => m.Price),
+                    "Rating" => query.OrderByDescending(m => m.Rating),
+                    _ => query.OrderByDescending(m => m.CreatedAt),
+                };
+            }
+            if (courseParams.sort == null) query = query.OrderByDescending(m => m.CreatedAt);
+            query = query.Skip((courseParams.pagenum - 1) * courseParams.pagesize).Take(courseParams.pagesize);
+            var result = mapper.Map<List<CourseDTO>>(query);
+            return result;
+
         }
 
         public async Task<bool> UpdateAsync(UpdateCourseDTO updateCourseDTO, string InstructorId)

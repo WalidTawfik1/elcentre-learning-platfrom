@@ -4,6 +4,7 @@ using ElCentre.Core.DTO;
 using ElCentre.Core.Entities;
 using ElCentre.Core.Interfaces;
 using ElCentre.Core.Services;
+using ElCentre.Core.Sharing;
 using ElCentre.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -291,7 +292,7 @@ namespace ElCentre.API.Controllers
             // Check if Google authentication is configured
             var googleClientId = _configuration["Authentication:Google:ClientId"];
             var googleClientSecret = _configuration["Authentication:Google:ClientSecret"];
-            
+
             if (string.IsNullOrEmpty(googleClientId) || string.IsNullOrEmpty(googleClientSecret))
             {
                 return BadRequest(new APIResponse(400, "Google authentication is not configured. Please contact the administrator."));
@@ -321,7 +322,7 @@ namespace ElCentre.API.Controllers
 
                 // Clear any existing external cookies
                 await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-                
+
                 var info = await _signInManager.GetExternalLoginInfoAsync();
                 if (info == null)
                 {
@@ -357,7 +358,7 @@ namespace ElCentre.API.Controllers
                             Gender = info.Principal.FindFirstValue(ClaimTypes.Gender) ?? "Unknown",
                             DateOfBirth = DateOnly.TryParse(info.Principal.FindFirstValue(ClaimTypes.DateOfBirth), out var parsedDate)
                                 ? parsedDate : DateOnly.FromDateTime(DateTime.Now),
-                            PhoneNumber = info.Principal.FindFirstValue(ClaimTypes.MobilePhone) ?? "0123456789"                           
+                            PhoneNumber = info.Principal.FindFirstValue(ClaimTypes.MobilePhone) ?? "0123456789"
                         };
 
                         var result = await _userManager.CreateAsync(user);
@@ -365,7 +366,7 @@ namespace ElCentre.API.Controllers
                         {
                             return BadRequest(new APIResponse(400, "User creation failed."));
                         }
-                        
+
                         // Add user to role
                         var roleResult = await _userManager.AddToRoleAsync(user, role);
                         if (!roleResult.Succeeded)
@@ -404,6 +405,49 @@ namespace ElCentre.API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new APIResponse(500, $"Internal server error: {ex.Message}"));
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("block-user/{userId}")]
+        public async Task<IActionResult> BlockUser(string userId, bool block)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest(new APIResponse(400, "User ID cannot be null or empty."));
+            }
+            var result = await work.UserRepository.BlockAccount(userId, block);
+
+            if (!result)
+            {
+                return BadRequest(new APIResponse(400, "Failed to block user."));
+            }
+            if (block)
+            {
+                return Ok(new APIResponse(200, "User blocked successfully."));
+            }
+            return Ok(new APIResponse(200, "User unblocked successfully."));
+
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("get-all-users")]
+        public async Task<IActionResult> GetAllUsers([FromQuery] PagenationParams pagenationParams)
+        {
+            try
+            {
+                var users = await work.UserRepository.GetAllUsersAsync(pagenationParams);
+                if (users == null || !users.Any())
+                {
+                    return NotFound("No users found.");
+                }
+                var totalcount = users.Count();
+
+                return Ok(new Pagination<UserDTO>(pagenationParams.pagenum, pagenationParams.pagesize, totalcount, users));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
     }

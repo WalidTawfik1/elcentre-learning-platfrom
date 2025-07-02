@@ -57,6 +57,8 @@ namespace ElCentre.Core.DTO
         public string CourseStatus { get; set; }
 
         public string InstructorImage { get; set; }
+
+        public bool IsDeleted { get; set; }
     }
    
     public record UpdateCourseDTO 
