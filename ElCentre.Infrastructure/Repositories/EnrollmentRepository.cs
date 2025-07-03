@@ -31,6 +31,9 @@ namespace ElCentre.Infrastructure.Repositories
             if (alreadyEnrolled)
                 return null;
 
+            var course = await _context.Courses
+                .FirstOrDefaultAsync(c => c.Id == courseId);
+
             var enrollment = new Enrollment
             {
                 CourseId = courseId,
@@ -39,6 +42,8 @@ namespace ElCentre.Infrastructure.Repositories
                 Status = "Active",
                 Progress = 0
             };
+            if (course.Price == 0) enrollment.PaymentStatus = "Success";
+
             await base.AddAsync(enrollment);
             return enrollment;
         }
