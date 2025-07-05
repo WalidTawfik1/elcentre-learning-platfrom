@@ -16,6 +16,8 @@ namespace ElCentre.Core.DTO
 
         public string Description { get; set; }
 
+        public string? Requirements { get; set; }
+
         public decimal Price { get; set; }
 
         public IFormFileCollection Thumbnail { get; set; }
@@ -33,6 +35,8 @@ namespace ElCentre.Core.DTO
         public string Title { get; set; }
 
         public string Description { get; set; }
+
+        public string? Requirements { get; set; }
 
         public decimal Price { get; set; }
 
@@ -68,6 +72,8 @@ namespace ElCentre.Core.DTO
         public string Title { get; set; }
 
         public string Description { get; set; }
+
+        public string? Requirements { get; set; }
 
         public decimal Price { get; set; }
 

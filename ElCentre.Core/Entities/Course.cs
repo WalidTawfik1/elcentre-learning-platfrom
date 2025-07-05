@@ -18,6 +18,8 @@ namespace ElCentre.Core.Entities
 
         public string Description { get; set; }
 
+        public string? Requirements { get; set; }
+
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; } = 0m;
 

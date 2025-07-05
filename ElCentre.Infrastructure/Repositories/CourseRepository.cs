@@ -44,6 +44,7 @@ namespace ElCentre.Infrastructure.Repositories
             {
                 Title = addCourseDTO.Title,
                 Description = addCourseDTO.Description,
+                Requirements = addCourseDTO.Requirements,
                 Price = addCourseDTO.Price,
                 IsActive = addCourseDTO.IsActive,
                 DurationInHours = addCourseDTO.DurationInHours,
