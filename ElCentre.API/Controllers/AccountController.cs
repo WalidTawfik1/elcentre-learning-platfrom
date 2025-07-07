@@ -408,6 +408,12 @@ namespace ElCentre.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Blocks or unblocks a user account.(Admin Only)
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="block"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin")]
         [HttpPut("block-user/{userId}")]
         public async Task<IActionResult> BlockUser(string userId, bool block)
@@ -430,6 +436,11 @@ namespace ElCentre.API.Controllers
 
         }
 
+        /// <summary>
+        /// Gets all users with pagination.(Admin Only)
+        /// </summary>
+        /// <param name="pagenationParams"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin")]
         [HttpGet("get-all-users")]
         public async Task<IActionResult> GetAllUsers([FromQuery] PagenationParams pagenationParams)

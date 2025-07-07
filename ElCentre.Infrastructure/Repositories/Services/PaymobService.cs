@@ -116,7 +116,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
                 {
             new
             {
-                name = $"Enrollment #{enrollment.Id}",
+                name = $"Enrollment #{specialReference-145}",
                 amount = amountCents,
                 description = $"Course Enrollment Payment for course #{enrollment.Course.Title}",
                 quantity = 1

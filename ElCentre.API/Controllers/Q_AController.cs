@@ -15,6 +15,11 @@ namespace ElCentre.API.Controllers
         {
         }
 
+        /// <summary>
+        /// Gets all questions related to a specific lesson.
+        /// </summary>
+        /// <param name="lessonId"></param>
+        /// <returns></returns>
         [HttpGet("get-all-lesson-questions/{lessonId}")]
         public async Task<IActionResult> GetAllLessonQuestions(int lessonId)
         {
@@ -30,6 +35,11 @@ namespace ElCentre.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Gets all answers related to a specific question.
+        /// </summary>
+        /// <param name="questionId"></param>
+        /// <returns></returns>
         [HttpGet("get-all-question-answers/{questionId}")]
         public async Task<IActionResult> GetAllQuestionAnswers(int questionId)
         {
@@ -45,6 +55,12 @@ namespace ElCentre.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Adds a new question to a lesson.
+        /// </summary>
+        /// <param name="question"></param>
+        /// <param name="lessonId"></param>
+        /// <returns></returns>
         [HttpPost("add-question")]
         public async Task<IActionResult> AddQuestion(string question, int lessonId)
         {
@@ -75,6 +91,12 @@ namespace ElCentre.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Adds a new answer to a specific question.
+        /// </summary>
+        /// <param name="answer"></param>
+        /// <param name="questionId"></param>
+        /// <returns></returns>
         [HttpPost("add-answer")]
         public async Task<IActionResult> AddAnswer(string answer, int questionId)
         {
@@ -105,6 +127,11 @@ namespace ElCentre.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Deletes a specific question.
+        /// </summary>
+        /// <param name="questionId"></param>
+        /// <returns></returns>
         [HttpDelete("delete-question/{questionId}")]
         public async Task<IActionResult> DeleteQuestion(int questionId)
         {
@@ -129,6 +156,11 @@ namespace ElCentre.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Deletes a specific answer.
+        /// </summary>
+        /// <param name="answerId"></param>
+        /// <returns></returns>
         [HttpDelete("delete-answer/{answerId}")]
         public async Task<IActionResult> DeleteAnswer(int answerId)
         {
@@ -153,6 +185,12 @@ namespace ElCentre.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Updates a specific question.
+        /// </summary>
+        /// <param name="questionId"></param>
+        /// <param name="question"></param>
+        /// <returns></returns>
         [HttpPut("update-question/{questionId}")]
         public async Task<IActionResult> UpdateQuestion(int questionId, string question)
         {
@@ -180,6 +218,12 @@ namespace ElCentre.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Updates a specific answer.
+        /// </summary>
+        /// <param name="answerId"></param>
+        /// <param name="answer"></param>
+        /// <returns></returns>
         [HttpPut("update-answer/{answerId}")]
         public async Task<IActionResult> UpdateAnswer(int answerId, string answer)
         {
@@ -207,6 +251,12 @@ namespace ElCentre.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Pins or unpins a specific question.
+        /// </summary>
+        /// <param name="questionId"></param>
+        /// <param name="isPinned"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Instructor")]
         [HttpPut("pin-question/{questionId}")]
         public async Task<IActionResult> PinQuestion(int questionId, bool isPinned)
@@ -230,6 +280,13 @@ namespace ElCentre.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Reports a question or answer.
+        /// </summary>
+        /// <param name="questionId"></param>
+        /// <param name="answerId"></param>
+        /// <param name="reason"></param>
+        /// <returns></returns>
         [HttpPost("report-qa")]
         public async Task<IActionResult> ReportQA(int? questionId, int? answerId, string reason)
         {

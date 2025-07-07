@@ -20,6 +20,11 @@ namespace ElCentre.API.Controllers
             _notificationService = notificationService;
         }
 
+        /// <summary>
+        /// Creates a new course notification.
+        /// </summary>
+        /// <param name="notificationDto"></param>
+        /// <returns></returns>
         [HttpPost("create-course-notification")]
         [Authorize(Roles = "Instructor")]
         public async Task<IActionResult> CreateCourseNotification(CourseNotificationDTO notificationDto)
@@ -48,7 +53,14 @@ namespace ElCentre.API.Controllers
 
             var result = await _notificationService.CreateCourseNotificationAsync(notification);
             return Ok(result);
-        }        [HttpGet("course/{courseId}")]
+        }
+        /// <summary>
+        /// Gets notifications for a specific course.
+        /// </summary>
+        /// <param name="courseId"></param>
+        /// <param name="unreadOnly"></param>
+        /// <returns></returns>
+        [HttpGet("course/{courseId}")]
         public async Task<IActionResult> GetCourseNotifications(int courseId, [FromQuery] bool unreadOnly = false)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -59,6 +71,13 @@ namespace ElCentre.API.Controllers
             return Ok(notifications);
         }
 
+        /// <summary>
+        /// Gets all notifications for the user, with optional filtering for unread notifications and pagination.
+        /// </summary>
+        /// <param name="unreadOnly"></param>
+        /// <param name="page"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
         [HttpGet("all")]
         public async Task<IActionResult> GetAllNotifications(
             [FromQuery] bool unreadOnly = false, 
@@ -73,6 +92,9 @@ namespace ElCentre.API.Controllers
             return Ok(notifications);
         }
 
+        /// <summary>
+        /// Retrieves the count of unread notifications for the currently authenticated user.
+        /// </summary>
         [HttpGet("unread-count")]
         public async Task<IActionResult> GetUnreadCount()
         {
@@ -84,6 +106,11 @@ namespace ElCentre.API.Controllers
             return Ok(new { unreadCount = count });
         }
 
+        /// <summary>
+        /// Gets the count of unread notifications for a specific course.
+        /// </summary>
+        /// <param name="courseId"></param>
+        /// <returns></returns>
         [HttpGet("course/{courseId}/unread-count")]
         public async Task<IActionResult> GetCourseUnreadCount(int courseId)
         {
@@ -95,6 +122,9 @@ namespace ElCentre.API.Controllers
             return Ok(new { unreadCount = count });
         }
 
+        /// <summary>
+        /// Marks a specific notification as read for the currently authenticated user.
+        /// </summary>
         [HttpPut("{notificationId}/read")]
         public async Task<IActionResult> MarkNotificationAsRead(int notificationId)
         {
@@ -106,6 +136,9 @@ namespace ElCentre.API.Controllers
             return Ok(new { message = "Notification marked as read" });
         }
 
+        /// <summary>
+        /// Marks all notifications for a specific course as read for the current user.
+        /// </summary>
         [HttpPut("course/{courseId}/read-all")]
         public async Task<IActionResult> MarkAllCourseNotificationsAsRead(int courseId)
         {
@@ -117,6 +150,9 @@ namespace ElCentre.API.Controllers
             return Ok(new { message = "All course notifications marked as read" });
         }
 
+        /// <summary>
+        /// Marks all notifications for the current user as read.
+        /// </summary>
         [HttpPut("read-all")]
         public async Task<IActionResult> MarkAllNotificationsAsRead()
         {
@@ -128,6 +164,12 @@ namespace ElCentre.API.Controllers
             return Ok(new { message = "All notifications marked as read" });
         }
 
+        /// <summary>
+        /// Gets the notification history for the current user, with optional date filtering.
+        /// </summary>
+        /// <param name="fromDate"></param>
+        /// <param name="toDate"></param>
+        /// <returns></returns>
         [HttpGet("history")]
         public async Task<IActionResult> GetNotificationHistory(
             [FromQuery] DateTime? fromDate = null,
@@ -141,6 +183,9 @@ namespace ElCentre.API.Controllers
             return Ok(history);
         }
 
+        /// <summary>
+        /// Deletes a notification for the current user.
+        /// </summary>
         [HttpDelete("{notificationId}")]
         [Authorize(Roles = "Instructor,Admin")]
         public async Task<IActionResult> DeleteNotification(int notificationId)
@@ -154,6 +199,11 @@ namespace ElCentre.API.Controllers
         }
 
         // Endpoint for admin to send course status notifications
+        /// <summary>
+        /// Sends a course status notification to the instructor.(Admin only)
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("course-status")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> SendCourseStatusNotification([FromBody] CourseStatusNotificationRequest request)
@@ -176,6 +226,11 @@ namespace ElCentre.API.Controllers
         }
 
         // Manual endpoint to trigger new lesson notification (for testing or manual triggers)
+        /// <summary>
+        /// Manually sends a new lesson notification to students enrolled in a course.(Instructor only)
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("new-lesson")]
         [Authorize(Roles = "Instructor")]
         public async Task<IActionResult> SendNewLessonNotification([FromBody] NewLessonNotificationRequest request)
@@ -196,6 +251,10 @@ namespace ElCentre.API.Controllers
         }
 
         // Cleanup expired notifications (admin only)
+        /// <summary>
+        /// Cleans up expired notifications.(Admin only)
+        /// </summary>
+        /// <returns></returns>
         [HttpPost("cleanup-expired")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CleanupExpiredNotifications()
