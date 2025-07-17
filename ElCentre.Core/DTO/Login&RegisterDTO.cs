@@ -17,6 +17,8 @@ namespace ElCentre.Core.DTO
         public string Gender { get; set; }
         public DateOnly DateOfBirth { get; set; }
         public string UserType { get; set; }
+        public string Country { get; set; }
+
     }
 
     public record LoginDTO

@@ -28,6 +28,8 @@ namespace ElCentre.Core.Entities
 
         public string? ProfilePicture { get; set; }
 
+        public string Country { get; set; }
+
         public ICollection<Course> CreatedCourses { get; set; } = new List<Course>();
 
         public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();

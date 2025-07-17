@@ -21,6 +21,7 @@ namespace ElCentre.Core.DTO
         public string? ProfilePicture { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string Country { get; set; }
     }
     public record UpdateUserDTO
     {
@@ -31,5 +32,6 @@ namespace ElCentre.Core.DTO
         public DateOnly DateOfBirth { get; set; }
         public string? Bio { get; set; }
         public IFormFileCollection? ProfilePicture { get; set; }
+        public string Country { get; set; }
     }
 }

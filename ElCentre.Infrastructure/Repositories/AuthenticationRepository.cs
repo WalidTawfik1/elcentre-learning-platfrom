@@ -54,6 +54,7 @@ namespace ElCentre.Infrastructure.Repositories
                     Gender = registerDTO.Gender,
                     DateOfBirth = registerDTO.DateOfBirth,
                     UserType = registerDTO.UserType,
+                    Country = registerDTO.Country
                 };
                 var result = await userManager.CreateAsync(user, registerDTO.Password);
                 if (!result.Succeeded)

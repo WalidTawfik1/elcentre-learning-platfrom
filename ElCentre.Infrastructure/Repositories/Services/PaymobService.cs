@@ -25,10 +25,8 @@ namespace ElCentre.Infrastructure.Repositories.Services
 {
     public class PaymobService : IPaymobService
     {
-        private readonly IUnitofWork _unitofWork;
         private readonly IConfiguration _configuration;
         private readonly ElCentreDbContext _context;
-        private readonly IPaymobCashInBroker _broker;
         private readonly IEmailService _emailService;
         private readonly INotificationService _notification;
 
@@ -42,8 +40,6 @@ namespace ElCentre.Infrastructure.Repositories.Services
         {
             _context = context;
             _configuration = configuration;
-            _unitofWork = unitofWork;
-            _broker = broker;
             _emailService = emailService;
             _notification = notification;
         }
@@ -95,7 +91,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
                 street = "N/A",
                 building = "N/A",
                 phone_number = student.PhoneNumber,
-                country = "Egypt",
+                country = student.Country,
                 email = student.Email,
                 floor = "N/A",
                 state = "N/A",
@@ -160,7 +156,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
             var payment = new Payment
             {
                 Amount = enrollment.Course.Price,
-                PaymentMethod = "Wallet",
+                PaymentMethod = paymentMethod,
                 Status = "Pending",
                 TransactionId = specialReference.ToString(),
                 EnrollmentId = enrollment.Id,
