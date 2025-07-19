@@ -20,5 +20,7 @@ namespace ElCentre.Core.Interfaces
         Task<List<EnrollmentDTO>> GetCourseEnrollmentsAsync(int courseId);
         Task<int> GetStudentsCount(int courseId);
 
+        Task<bool> UnEnroll(int courseId, string studentId);
+
     }
 }

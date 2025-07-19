@@ -358,7 +358,8 @@ namespace ElCentre.API.Controllers
                             Gender = info.Principal.FindFirstValue(ClaimTypes.Gender) ?? "Unknown",
                             DateOfBirth = DateOnly.TryParse(info.Principal.FindFirstValue(ClaimTypes.DateOfBirth), out var parsedDate)
                                 ? parsedDate : DateOnly.FromDateTime(DateTime.Now),
-                            PhoneNumber = info.Principal.FindFirstValue(ClaimTypes.MobilePhone) ?? "0123456789"
+                            PhoneNumber = info.Principal.FindFirstValue(ClaimTypes.MobilePhone) ?? "0123456789",
+                            Country = info.Principal.FindFirstValue(ClaimTypes.Country) ?? "Unknown"
                         };
 
                         var result = await _userManager.CreateAsync(user);

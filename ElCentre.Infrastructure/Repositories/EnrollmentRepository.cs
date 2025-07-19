@@ -208,5 +208,19 @@ namespace ElCentre.Infrastructure.Repositories
                 .CountAsync();
             return count;
         }
+
+        public async Task<bool> UnEnroll(int courseId, string studentId)
+        {
+            if (courseId <= 0 || string.IsNullOrEmpty(studentId))
+                return false;
+            var enrollment = await _context.Enrollments
+                .FirstOrDefaultAsync(e => e.CourseId == courseId && e.StudentId == studentId && e.PaymentStatus == "Success");
+            if (enrollment == null)
+                return false;
+            // Remove the enrollment
+            enrollment.PaymentStatus = "Cancelled";
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

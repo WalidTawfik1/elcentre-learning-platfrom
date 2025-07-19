@@ -244,6 +244,38 @@ namespace ElCentre.API.Controllers
             }
         }
 
-
+        /// <summary>
+        /// Un-enroll a student from a course
+        /// </summary>
+        /// <param name="courseId"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPut("unenroll/{courseId}")]
+        public async Task<IActionResult> UnEnroll(int courseId)
+        {
+            try
+            {
+                if (courseId <= 0)
+                    return BadRequest(new APIResponse(400, "Invalid course ID"));
+                var studentId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var result = await work.EnrollmentRepository.UnEnroll(courseId, studentId);
+                if (result)
+                    return Ok(new APIResponse(200, "Unenrolled successfully."));
+                
+                return BadRequest(new APIResponse(400, "Failed to unenroll."));
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = ex.Message;
+                
+                // Include inner exception details if they exist
+                if (ex.InnerException != null)
+                {
+                    errorMessage += $" Inner exception: {ex.InnerException.Message}";
+                }
+                
+                return BadRequest(new APIResponse(400, errorMessage));
+            }
+        }
     }
 }
