@@ -27,6 +27,8 @@ namespace ElCentre.Core.DTO
         public int DurationInHours { get; set; }
 
         public int CategoryId { get; set; }
+
+        public bool UseAIAssistant { get; set; } = true;
     }
     public record CourseDTO
     {
@@ -63,6 +65,8 @@ namespace ElCentre.Core.DTO
         public string InstructorImage { get; set; }
 
         public bool IsDeleted { get; set; }
+
+        public bool UseAIAssistant { get; set; } = true;
     }
    
     public record UpdateCourseDTO 
@@ -84,5 +88,7 @@ namespace ElCentre.Core.DTO
         public int DurationInHours { get; set; }
 
         public int CategoryId { get; set; }
+
+        public bool UseAIAssistant { get; set; } = true;
     }
 }

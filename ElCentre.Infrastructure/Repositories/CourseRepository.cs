@@ -53,6 +53,7 @@ namespace ElCentre.Infrastructure.Repositories
                 CategoryId = addCourseDTO.CategoryId,
                 Category = category,
                 CourseStatus = "Pending",
+                UseAIAssistant = addCourseDTO.UseAIAssistant
             };
 
             if (addCourseDTO.Thumbnail != null)

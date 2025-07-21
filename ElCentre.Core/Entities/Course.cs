@@ -37,6 +37,8 @@ namespace ElCentre.Core.Entities
 
         public string CourseStatus { get; set; } = "Pending";
 
+        public bool UseAIAssistant { get; set; } = true;
+
         [ForeignKey("Instructor")]
         public string InstructorId { get; set; }
         public AppUser Instructor { get; set; }
