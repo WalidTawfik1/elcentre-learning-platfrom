@@ -119,7 +119,7 @@ namespace ElCentre.API.Controllers
         /// <returns>Response indicating success or failure</returns>
         [Authorize(Roles = "Admin,Instructor")]
         [HttpPut("update-lesson")]
-        public async Task<IActionResult> UpdateLesson(UpdateLessonDTO updateLessonDto)
+        public async Task<IActionResult> UpdateLesson([FromForm] UpdateLessonDTO updateLessonDto)
         {
             try
             {
@@ -140,9 +140,16 @@ namespace ElCentre.API.Controllers
                 // Preserve the ModuleId and ContentType from the database
                 lesson.ModuleId = existingLesson.ModuleId;
                 lesson.ContentType = existingLesson.ContentType;
-                lesson.Content = existingLesson.Content;
+                if (existingLesson.ContentType == "text")
+                {
+                    lesson.Content = updateLessonDto.Content ?? existingLesson.Content;
+                }
+                else
+                {
+                    lesson.Content = existingLesson.Content; // Keep the existing content for non-text lessons
+                }
 
-                var result = await work.LessonRepository.UpdateLessonAsync(lesson,InstructorId);
+                    var result = await work.LessonRepository.UpdateLessonAsync(lesson, InstructorId);
 
                 if (result)
                 {

@@ -47,7 +47,7 @@ namespace ElCentre.Infrastructure.Repositories
         public async Task<IEnumerable<UserDTO>> GetAllInstructorsAsync()
         {
             var instructors = await _context.Users
-                .Where(u => u.UserType == "Instructor")
+                .Where(u => u.UserType == "Instructor" && u.IsActive == true)
                 .ToListAsync();
             if (instructors == null || !instructors.Any())
             {

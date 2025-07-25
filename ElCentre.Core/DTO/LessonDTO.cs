@@ -35,6 +35,9 @@ namespace ElCentre.Core.DTO
         public string? Description { get; set; }
 
         public bool IsPublished { get; set; } = true;
+
+        public string? Content { get; set; }
+
     }
 
     public record LessonDTO
