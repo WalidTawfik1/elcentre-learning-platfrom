@@ -179,7 +179,7 @@ namespace ElCentre.API.Controllers
         }
 
         /// <summary>
-        /// Get all completed lesson IDs for a course
+        /// Get all completed lesson for a course
         /// </summary>
         [Authorize]
         [HttpGet("completed-lessons/{courseId}")]

@@ -91,7 +91,8 @@ namespace ElCentre.Infrastructure.Repositories
                 LessonId = lessonId,
                 StudentId = studentId,
                 EnrollmentId = enrollment.Id,
-                CompletedDate = DateTime.Now
+                CompletedDate = DateTime.Now,
+                IsCompleted = true                
             };
 
             await _context.CompletedLessons.AddAsync(completedLesson);
@@ -112,17 +113,21 @@ namespace ElCentre.Infrastructure.Repositories
                 .AnyAsync(cl => cl.LessonId == lessonId && cl.StudentId == studentId);
         }
 
-        public async Task<List<int>> GetCompletedLessonIdsAsync(string studentId, int courseId)
+        public async Task<List<CompletedLessonsDTO>> GetCompletedLessonIdsAsync(string studentId, int courseId)
         {
             // Get all completed lessons for this student in this course
             var completedLessons = await _context.CompletedLessons
                 .Include(cl => cl.Lesson)
                 .ThenInclude(l => l.Module)
                 .Where(cl => cl.StudentId == studentId && cl.Lesson.Module.CourseId == courseId)
-                .Select(cl => cl.LessonId)
                 .ToListAsync();
 
-            return completedLessons;
+            if (completedLessons == null || !completedLessons.Any())
+                return null;
+
+            var result = _mapper.Map<List<CompletedLessonsDTO>>(completedLessons);
+
+            return result;
         }
 
         public async Task<float> CalculateAndUpdateProgressAsync(int enrollmentId)
@@ -155,6 +160,9 @@ namespace ElCentre.Infrastructure.Repositories
                 ? ((float)completedLessonsCount / totalLessons) * 100
                 : 0;
 
+            // Round to true number
+            progressPercentage = (float)Math.Round(progressPercentage);
+
             // Update enrollment
             enrollment.Progress = progressPercentage;
 
@@ -180,6 +188,22 @@ namespace ElCentre.Infrastructure.Repositories
                 .ToListAsync();
             if (enrollments == null)
                 return null;
+
+            foreach (var enrollment in enrollments)
+            {
+                // Calculate progress for each enrollment
+                await CalculateAndUpdateProgressAsync(enrollment.Id);
+                if (enrollment.Progress < 100)
+                {
+                    enrollment.Status = "Active";
+                }
+                else if (enrollment.Progress == 100 && enrollment.Status != "Completed")
+                {
+                    enrollment.Status = "Completed";
+                    enrollment.CompletionDate = DateTime.Now;
+                }
+            }
+
             var result = _mapper.Map<List<EnrollmentDTO>>(enrollments);
             return result;
 
