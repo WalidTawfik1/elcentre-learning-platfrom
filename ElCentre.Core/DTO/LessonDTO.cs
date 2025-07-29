@@ -22,6 +22,8 @@ namespace ElCentre.Core.DTO
         public bool IsPublished { get; set; } = true;
 
         public int ModuleId { get; set; }
+
+        public bool IsPreview { get; set; } = false; // Indicates if the lesson is a preview for free users
     }
 
     public record UpdateLessonDTO
@@ -37,6 +39,8 @@ namespace ElCentre.Core.DTO
         public bool IsPublished { get; set; } = true;
 
         public string? Content { get; set; }
+
+        public bool IsPreview { get; set; }
 
     }
 
@@ -60,5 +64,6 @@ namespace ElCentre.Core.DTO
 
         public bool IsPublished { get; set; } = true;
 
+        public bool IsPreview { get; set; } // Indicates if the lesson is a preview for free users
     }
 }

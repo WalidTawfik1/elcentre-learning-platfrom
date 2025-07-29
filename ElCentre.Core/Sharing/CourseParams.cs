@@ -22,6 +22,7 @@ namespace ElCentre.Core.Sharing
 
         public string? sort { get; set; }
         public int? categoryId { get; set; }
+        public string? language { get; set; }
         public string? search { get; set; }
         public decimal? minPrice { get; set; }
         public decimal? maxPrice { get; set; }

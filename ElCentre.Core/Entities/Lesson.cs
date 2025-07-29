@@ -28,6 +28,8 @@ namespace ElCentre.Core.Entities
 
         public bool IsPublished { get; set; } = true;
 
+        public bool IsPreview { get; set; } = false;
+
         [ForeignKey("Module")]
         public int ModuleId { get; set; }
         public CourseModule Module { get; set; }

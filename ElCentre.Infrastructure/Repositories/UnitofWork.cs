@@ -26,6 +26,7 @@ namespace ElCentre.Infrastructure.Repositories
         private readonly IVideoService _videoService;
         private readonly IProfilePicture _profilePicture;
         private readonly INotificationService _notification;
+        private readonly ICouponService _couponService;
 
         public IAuthentication Authentication { get; }
         public ICategoryRepository CategoryRepository { get; }
@@ -39,8 +40,9 @@ namespace ElCentre.Infrastructure.Repositories
         public IStudentQuizRepository StudentQuizRepository { get; }
         public IPendingCourseRepository PendingCourseRepository { get; }
         public IQ_A Q_ARepository { get; }
+        public ICouponCode CouponCodeRepository { get; }
 
-        public UnitofWork(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IMapper mapper, ElCentreDbContext context, IGenerateToken generateToken, IEmailService emailService, ICourseThumbnailService courseThumbnailService, IVideoService videoService, IProfilePicture profilePicture, INotificationService notification)
+        public UnitofWork(SignInManager<AppUser> signInManager, UserManager<AppUser> userManager, IMapper mapper, ElCentreDbContext context, IGenerateToken generateToken, IEmailService emailService, ICourseThumbnailService courseThumbnailService, IVideoService videoService, IProfilePicture profilePicture, INotificationService notification, ICouponService couponService)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -52,6 +54,7 @@ namespace ElCentre.Infrastructure.Repositories
             _videoService = videoService;
             _profilePicture = profilePicture;
             _notification = notification;
+            _couponService = couponService;
 
 
             Authentication = new AuthenticationRepository(_userManager, _emailService, _signInManager, _generateToken, _context);
@@ -66,6 +69,7 @@ namespace ElCentre.Infrastructure.Repositories
             StudentQuizRepository = new StudentQuizRepository(_context);
             PendingCourseRepository = new PendingCourseRepository(_context, _mapper, _emailService);
             Q_ARepository = new Q_A_Repository(_context, _notification);
+            CouponCodeRepository = new CouponCodeRepository(_context, _couponService);
         }
 
     }

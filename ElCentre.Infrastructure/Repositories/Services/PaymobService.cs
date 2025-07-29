@@ -6,6 +6,7 @@ using ElCentre.Core.Services;
 using ElCentre.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using MimeKit.Tnef;
 using Org.BouncyCastle.Crypto.Macs;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,7 @@ using System.Threading.Tasks;
 using X.Paymob.CashIn;
 using X.Paymob.CashIn.Models.Orders;
 using X.Paymob.CashIn.Models.Payment;
+using static Azure.Core.HttpHeader;
 
 namespace ElCentre.Infrastructure.Repositories.Services
 {
@@ -29,6 +31,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
         private readonly ElCentreDbContext _context;
         private readonly IEmailService _emailService;
         private readonly INotificationService _notification;
+        private readonly IUnitofWork _unitofWork;
 
         public PaymobService(
             ElCentreDbContext context,
@@ -42,9 +45,10 @@ namespace ElCentre.Infrastructure.Repositories.Services
             _configuration = configuration;
             _emailService = emailService;
             _notification = notification;
+            _unitofWork = unitofWork;
         }
 
-        public async Task<(Enrollment Enrollment, string RedirectUrl)> ProcessPaymentAsync(int enrollmentId, string paymentMethod)
+        public async Task<(Enrollment Enrollment, string RedirectUrl)> ProcessPaymentAsync(int enrollmentId, string paymentMethod, decimal amount, string? couponCode)
         {
             var enrollment = await _context.Enrollments
                 .Include(e => e.Payments)
@@ -79,8 +83,8 @@ namespace ElCentre.Infrastructure.Repositories.Services
             // Generate a special reference for this transaction
             int specialReference = RandomNumberGenerator.GetInt32(1000000, 9999999) + enrollmentId;
 
-            // Create intention request payload
-            var amountCents = (int)(enrollment.Course.Price * 100);
+
+            var amountCents = (int)(amount * 100);
 
             // Prepare billing data
             var billingData = new
@@ -173,6 +177,35 @@ namespace ElCentre.Infrastructure.Repositories.Services
 
             return (enrollment, redirectUrl);
         }
+
+        public decimal ApplyDiscount(decimal amount, string discountType, decimal discountValue)
+        {
+            switch (discountType.ToLower())
+            {
+                case "percentage":
+                    amount -= amount * (discountValue / 100);
+                    break;
+
+                case "fixed":
+                    amount -= discountValue;
+                    break;
+
+                case "setprice":
+                    amount = discountValue;
+                    break;
+
+                case "free":
+                    amount = 0;
+                    break;
+
+                default:
+                    throw new ArgumentException("Invalid discount type");
+            }
+
+            // Ensure amount is not negative
+            return amount < 0 ? 0 : amount;
+        }
+
 
         private string DetermineIntegrationId(string paymentMethod)
         {

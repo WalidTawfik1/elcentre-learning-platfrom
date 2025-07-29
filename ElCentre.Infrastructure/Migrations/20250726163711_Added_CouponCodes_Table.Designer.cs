@@ -4,6 +4,7 @@ using ElCentre.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ElCentre.Infrastructure.Migrations
 {
     [DbContext(typeof(ElCentreDbContext))]
-    partial class ElCentreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250726163711_Added_CouponCodes_Table")]
+    partial class Added_CouponCodes_Table
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -196,8 +199,8 @@ namespace ElCentre.Infrastructure.Migrations
                     b.Property<decimal>("DiscountValue")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateOnly>("ExpirationDate")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("ExpirationDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsGlobal")
                         .HasColumnType("bit");
@@ -210,29 +213,6 @@ namespace ElCentre.Infrastructure.Migrations
                     b.ToTable("CouponCodes");
                 });
 
-            modelBuilder.Entity("ElCentre.Core.Entities.CouponUsage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CouponId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UsedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("CouponUsages");
-                });
-
             modelBuilder.Entity("ElCentre.Core.Entities.Course", b =>
                 {
                     b.Property<int>("Id")
@@ -243,10 +223,6 @@ namespace ElCentre.Infrastructure.Migrations
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
-
-                    b.Property<string>("CourseLanguage")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CourseStatus")
                         .IsRequired()
@@ -497,9 +473,6 @@ namespace ElCentre.Infrastructure.Migrations
 
                     b.Property<int>("DurationInMinutes")
                         .HasColumnType("int");
-
-                    b.Property<bool>("IsPreview")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("IsPublished")
                         .HasColumnType("bit");

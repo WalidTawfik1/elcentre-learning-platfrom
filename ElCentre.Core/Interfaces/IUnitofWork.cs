@@ -20,5 +20,6 @@ namespace ElCentre.Core.Interfaces
         IStudentQuizRepository StudentQuizRepository { get; }
         IPendingCourseRepository PendingCourseRepository { get; }
         IQ_A Q_ARepository { get; }
+        ICouponCode CouponCodeRepository { get; }
     }
 }

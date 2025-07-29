@@ -9,7 +9,7 @@ namespace ElCentre.Core.Services
 {
     public interface IPaymobService
     {
-        Task<(Enrollment Enrollment, string RedirectUrl)> ProcessPaymentAsync(int enrollmentId, string paymentMethod);
+        Task<(Enrollment Enrollment, string RedirectUrl)> ProcessPaymentAsync(int enrollmentId, string paymentMethod, decimal amount,string? couponCode);
         Task<Enrollment> UpdateOrderSuccess(string specialReference);
         Task<Enrollment> UpdateOrderFailed(string specialReference);
         string ComputeHmacSHA512(string data, string secret);

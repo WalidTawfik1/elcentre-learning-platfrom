@@ -39,6 +39,8 @@ namespace ElCentre.Core.Entities
 
         public bool UseAIAssistant { get; set; } = true;
 
+        public string CourseLanguage { get; set; } = string.Empty;
+
         [ForeignKey("Instructor")]
         public string InstructorId { get; set; }
         public AppUser Instructor { get; set; }

@@ -145,8 +145,9 @@ namespace ElCentre.Infrastructure.Repositories
                 existingLesson.DurationInMinutes = lesson.DurationInMinutes;
                 existingLesson.IsPublished = lesson.IsPublished;
                 existingLesson.Description = lesson.Description;
-                
-                if(existingLesson.ContentType == "text")
+                existingLesson.IsPreview = lesson.IsPreview;
+
+                if (existingLesson.ContentType == "text")
                 {
                     existingLesson.Content = lesson.Content;
                 }

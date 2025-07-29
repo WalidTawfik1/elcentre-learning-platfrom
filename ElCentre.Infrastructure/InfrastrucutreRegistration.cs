@@ -68,6 +68,9 @@ namespace ElCentre.Infrastructure
             // Register the IPaymob service
             services.AddScoped<IPaymobService, PaymobService>();
 
+            // Register the ICoupon service
+            services.AddScoped<ICouponService, CouponService>();
+
             // Register AppDbContext with SQL Server
             services.AddDbContext<ElCentreDbContext>((options) =>
             {

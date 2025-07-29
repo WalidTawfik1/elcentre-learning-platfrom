@@ -28,6 +28,8 @@ namespace ElCentre.Infrastructure.Data
         public DbSet<NotificationReadStatus> NotificationReadStatuses { get; set; }
         public DbSet<LessonQuestion> LessonQuestions { get; set; }
         public DbSet<LessonAnswer> LessonAnswers { get; set; }
+        public DbSet<CouponCode> CouponCodes { get; set; }
+        public DbSet<CouponUsage> CouponUsages { get; set; }
 
         public ElCentreDbContext(DbContextOptions<ElCentreDbContext> options) : base(options)
         {

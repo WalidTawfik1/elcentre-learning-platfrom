@@ -29,6 +29,8 @@ namespace ElCentre.Core.DTO
         public int CategoryId { get; set; }
 
         public bool UseAIAssistant { get; set; } = true;
+
+        public string CourseLanguage { get; set; } = string.Empty;
     }
     public record CourseDTO
     {
@@ -67,6 +69,8 @@ namespace ElCentre.Core.DTO
         public bool IsDeleted { get; set; }
 
         public bool UseAIAssistant { get; set; } = true;
+
+        public string CourseLanguage { get; set; } = string.Empty;
     }
    
     public record UpdateCourseDTO 
@@ -90,5 +94,7 @@ namespace ElCentre.Core.DTO
         public int CategoryId { get; set; }
 
         public bool UseAIAssistant { get; set; } = true;
+
+        public string CourseLanguage { get; set; } = string.Empty;
     }
 }

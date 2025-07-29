@@ -4,6 +4,7 @@ using ElCentre.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ElCentre.Infrastructure.Migrations
 {
     [DbContext(typeof(ElCentreDbContext))]
-    partial class ElCentreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250727164530_Added_Some_New_Fields")]
+    partial class Added_Some_New_Fields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -208,29 +211,6 @@ namespace ElCentre.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CouponCodes");
-                });
-
-            modelBuilder.Entity("ElCentre.Core.Entities.CouponUsage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CouponId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("UsedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("CouponUsages");
                 });
 
             modelBuilder.Entity("ElCentre.Core.Entities.Course", b =>

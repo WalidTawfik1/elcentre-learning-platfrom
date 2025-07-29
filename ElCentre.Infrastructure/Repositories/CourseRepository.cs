@@ -53,7 +53,8 @@ namespace ElCentre.Infrastructure.Repositories
                 CategoryId = addCourseDTO.CategoryId,
                 Category = category,
                 CourseStatus = "Pending",
-                UseAIAssistant = addCourseDTO.UseAIAssistant
+                UseAIAssistant = addCourseDTO.UseAIAssistant,
+                CourseLanguage = addCourseDTO.CourseLanguage
             };
 
             if (addCourseDTO.Thumbnail != null)
@@ -109,7 +110,7 @@ namespace ElCentre.Infrastructure.Repositories
                  .Include(c => c.Instructor)
                  .Include(c => c.Modules)
                  .Include(c => c.Reviews).ThenInclude(r => r.User)
-                 .Where(c => c.InstructorId == InstructorId && c.CourseStatus == "Approved" && !c.IsDeleted)
+                 .Where(c => c.InstructorId == InstructorId && c.CourseStatus == "Approved" && !c.IsDeleted && c.IsActive)
                  .AsNoTracking();
             var result = mapper.Map<List<CourseDTO>>(courses);
             return result;
@@ -151,6 +152,12 @@ namespace ElCentre.Infrastructure.Repositories
             // Filter by category
             if (courseParams.categoryId.HasValue)
                 query = query.Where(m => m.CategoryId == courseParams.categoryId);
+
+            // Filter by language
+            if(!string.IsNullOrEmpty(courseParams.language))
+            {
+                query = query.Where(m => m.CourseLanguage.ToLower() == courseParams.language.ToLower());
+            }
 
             // Filter by price
             if (courseParams.minPrice != null && courseParams.maxPrice != null)
@@ -232,6 +239,13 @@ namespace ElCentre.Infrastructure.Repositories
             // Filter by category
             if (courseParams.categoryId.HasValue)
                 query = query.Where(m => m.CategoryId == courseParams.categoryId);
+
+            // Filter by language
+            if (!string.IsNullOrEmpty(courseParams.language))
+            {
+                query = query.Where(m => m.CourseLanguage.ToLower() == courseParams.language.ToLower());
+            }
+
             // Filter by price
             if (courseParams.minPrice != null && courseParams.maxPrice != null)
             {
