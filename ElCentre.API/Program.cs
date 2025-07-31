@@ -5,6 +5,7 @@ using ElCentre.Core.Services;
 using ElCentre.Infrastructure;
 using ElCentre.Infrastructure.Repositories.Services;
 using System.Reflection;
+using Serilog;
 
 namespace ElCentre.API
 {
@@ -45,6 +46,12 @@ namespace ElCentre.API
             builder.Services.InfrastructureConfiguration(builder.Configuration);
             // Add AutoMapper
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            Log.Logger = new LoggerConfiguration()
+             .WriteTo.File("Logs/paymob-log.txt", rollingInterval: RollingInterval.Day)
+             .CreateLogger();
+
+            builder.Host.UseSerilog();
 
 
             var app = builder.Build();

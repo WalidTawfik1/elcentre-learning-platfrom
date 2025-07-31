@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -23,14 +24,22 @@ namespace ElCentre.API.Controllers
         private readonly IConfiguration _configuration;
         private readonly ElCentreDbContext _context;
         private readonly ICouponService _couponService;
+        private readonly ILogger<PaymentController> _logger;
 
-        public PaymentController(IPaymobService paymobService, IUnitofWork work, IConfiguration configuration, ElCentreDbContext context, ICouponService couponService)
+        public PaymentController(
+            IPaymobService paymobService,
+            IUnitofWork work,
+            IConfiguration configuration,
+            ElCentreDbContext context,
+            ICouponService couponService,
+            ILogger<PaymentController> logger)
         {
             _paymobService = paymobService;
             _work = work;
             _configuration = configuration;
             _context = context;
             _couponService = couponService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -133,11 +142,9 @@ namespace ElCentre.API.Controllers
 
                 if (isSuccess)
                 {
-                    await _paymobService.UpdateOrderSuccess(specialReference);
                     return Content(HtmlGenerator.GenerateSuccessHtml(), "text/html");
                 }
 
-                await _paymobService.UpdateOrderFailed(specialReference);
                 return Content(HtmlGenerator.GenerateFailedHtml(), "text/html");
             }
 
@@ -156,41 +163,70 @@ namespace ElCentre.API.Controllers
                 string receivedHmac = Request.Query["hmac"];
                 string secret = _configuration["Paymob:HMAC"];
 
-                string[] keys = {
-                    "amount_cents","created_at","currency","error_occured","has_parent_transaction",
-                    "id","integration_id","is_3d_secure","is_auth","is_capture","is_refunded",
-                    "is_standalone_payment","is_voided","order.id","owner","pending",
-                    "source_data.pan","source_data.sub_type","source_data.type","success"
+                if (!payload.TryGetProperty("obj", out var obj))
+                    return BadRequest("Missing 'obj' in payload.");
+
+                string[] fields = new[]
+                {
+                    "amount_cents", "created_at", "currency", "error_occured", "has_parent_transaction",
+                    "id", "integration_id", "is_3d_secure", "is_auth", "is_capture", "is_refunded",
+                    "is_standalone_payment", "is_voided", "order.id", "owner", "pending",
+                    "source_data.pan", "source_data.sub_type", "source_data.type", "success"
                 };
 
-                var obj = payload.GetProperty("obj");
-                var sb = new StringBuilder();
-                foreach (var key in keys)
+                var concatenated = new StringBuilder();
+                foreach (var field in fields)
                 {
-                    var parts = key.Split('.');
-                    JsonElement value = obj;
+                    string[] parts = field.Split('.');
+                    JsonElement current = obj;
+                    bool found = true;
                     foreach (var part in parts)
                     {
-                        if (value.TryGetProperty(part, out var temp))
-                            value = temp;
+                        if (current.ValueKind == JsonValueKind.Object && current.TryGetProperty(part, out var next))
+                            current = next;
                         else
-                            value = default;
+                        {
+                            found = false;
+                            break;
+                        }
                     }
-                    sb.Append(value.ToString());
+
+                    if (!found || current.ValueKind == JsonValueKind.Null)
+                    {
+                        concatenated.Append(""); // Use empty string for missing/null fields
+                    }
+                    else if (current.ValueKind == JsonValueKind.True || current.ValueKind == JsonValueKind.False)
+                    {
+                        concatenated.Append(current.GetBoolean() ? "true" : "false"); // Lowercase boolean
+                    }
+                    else
+                    {
+                        concatenated.Append(current.ToString());
+                    }
                 }
 
-                string calculatedHmac = _paymobService.ComputeHmacSHA512(sb.ToString(), secret);
+                string calculatedHmac = _paymobService.ComputeHmacSHA512(concatenated.ToString(), secret);
 
                 if (!receivedHmac.Equals(calculatedHmac, StringComparison.OrdinalIgnoreCase))
                     return Unauthorized("Invalid HMAC");
 
-                string merchantOrderId = obj.GetProperty("order").GetProperty("merchant_order_id").GetString();
-                bool isSuccess = obj.GetProperty("success").GetBoolean();
+                string merchantOrderId = null;
+                if (obj.TryGetProperty("order", out var order) &&
+                    order.TryGetProperty("merchant_order_id", out var merchantOrderIdElement) &&
+                    merchantOrderIdElement.ValueKind != JsonValueKind.Null)
+                {
+                    merchantOrderId = merchantOrderIdElement.ToString();
+                }
 
-                if (isSuccess)
-                    await _paymobService.UpdateOrderSuccess(merchantOrderId);
-                else
-                    await _paymobService.UpdateOrderFailed(merchantOrderId);
+                bool isSuccess = obj.TryGetProperty("success", out var successElement) && successElement.GetBoolean();
+
+                if (!string.IsNullOrEmpty(merchantOrderId))
+                {
+                    if (isSuccess)
+                        await _paymobService.UpdateOrderSuccess(merchantOrderId);
+                    else
+                        await _paymobService.UpdateOrderFailed(merchantOrderId);
+                }
 
                 return Ok();
             }

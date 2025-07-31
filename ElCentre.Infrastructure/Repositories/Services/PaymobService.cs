@@ -114,14 +114,14 @@ namespace ElCentre.Infrastructure.Repositories.Services
                 billing_data = billingData,
                 items = new[]
                 {
-            new
-            {
-                name = $"Enrollment #{specialReference-145}",
-                amount = amountCents,
-                description = $"Course Enrollment Payment for course #{enrollment.Course.Title}",
-                quantity = 1
-            }
-        },
+                    new
+                    {
+                        name = $"Enrollment #{specialReference-145}",
+                        amount = amountCents,
+                        description = $"Course Enrollment Payment for course #{enrollment.Course.Title}",
+                        quantity = 1
+                    }
+                },
                 customer = new
                 {
                     first_name = billingData.first_name,
@@ -136,6 +136,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
                 },
                 special_reference = specialReference,
                 expiration = 3600, // 1 hour expiration
+                merchant_order_id = specialReference.ToString()
             };
 
             // Create HTTP request for Paymob's intention API
@@ -177,35 +178,6 @@ namespace ElCentre.Infrastructure.Repositories.Services
 
             return (enrollment, redirectUrl);
         }
-
-        public decimal ApplyDiscount(decimal amount, string discountType, decimal discountValue)
-        {
-            switch (discountType.ToLower())
-            {
-                case "percentage":
-                    amount -= amount * (discountValue / 100);
-                    break;
-
-                case "fixed":
-                    amount -= discountValue;
-                    break;
-
-                case "setprice":
-                    amount = discountValue;
-                    break;
-
-                case "free":
-                    amount = 0;
-                    break;
-
-                default:
-                    throw new ArgumentException("Invalid discount type");
-            }
-
-            // Ensure amount is not negative
-            return amount < 0 ? 0 : amount;
-        }
-
 
         private string DetermineIntegrationId(string paymentMethod)
         {
