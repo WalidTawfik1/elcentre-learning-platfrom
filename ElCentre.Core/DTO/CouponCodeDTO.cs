@@ -13,5 +13,6 @@ namespace ElCentre.Core.DTO
         public int UsageLimit { get; set; }
         public bool IsGlobal { get; set; } = false; // If true, the coupon can be used for any course
         public int? CourseId { get; set; }
+        public string? CourseName { get; set; } // Optional, if the coupon is specific to a course
     }
 }
