@@ -62,7 +62,8 @@ namespace ElCentre.Infrastructure.Repositories.Services
             var query = from n in _dbContext.CourseNotifications
                         where n.CourseId == courseId && n.IsActive &&
                               (n.TargetUserId == null || n.TargetUserId == userId) &&
-                              (n.ExpiresAt == null || n.ExpiresAt > DateTime.Now)
+                              (n.ExpiresAt == null || n.ExpiresAt > DateTime.Now) &&
+                              (n.CreatedById != userId || n.IsGlobal)
                         join rs in _dbContext.NotificationReadStatuses
                         on new { NotificationId = n.Id, UserId = userId }
                         equals new { NotificationId = rs.NotificationId, UserId = rs.UserId }
@@ -96,7 +97,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
             var query = from n in _dbContext.CourseNotifications
                         where n.IsActive &&
                               (n.ExpiresAt == null || n.ExpiresAt > DateTime.Now) &&
-                              (n.IsGlobal ||
+                              (n.IsGlobal && n.CreatedById != userId ||
                                n.TargetUserId == userId ||
                                (n.TargetUserRole == "All") ||
                                (n.TargetUserRole == userRole) ||
@@ -394,6 +395,19 @@ namespace ElCentre.Infrastructure.Repositories.Services
                 notification.IsActive = false; // Soft delete
                 await _dbContext.SaveChangesAsync();
             }
+        }
+
+        public Task<List<CourseNotification>> GetCourseNotificationsForInstructorAsync(string instructorId, int courseId)
+        {
+            return _dbContext.CourseNotifications
+                .Where(n => n.CourseId == courseId && n.CreatedById == instructorId && n.IsActive &&
+                n.NotificationType != "NewLesson" &&
+                n.NotificationType != "NewAnswer" &&
+                n.NotificationType != "NewQuestion" &&
+                n.NotificationType != "QuestionReported" &&
+                n.NotificationType != "AnswerReported")
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
         }
     }
 }

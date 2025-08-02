@@ -262,6 +262,18 @@ namespace ElCentre.API.Controllers
             await _notificationService.DeleteExpiredNotificationsAsync();
             return Ok(new { message = "Expired notifications cleaned up" });
         }
+
+        [Authorize(Roles = "Instructor")]
+        [HttpGet("get-instructor-notifications/{courseId}")]
+        public async Task<IActionResult> GetInstructorNotifications(int courseId)
+        {
+            var instructorId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(instructorId))
+                return Unauthorized("Instructor not found");
+                
+            var notifications = await _notificationService.GetCourseNotificationsForInstructorAsync(instructorId, courseId);
+            return Ok(notifications);
+        }
     }
 
     // Request models

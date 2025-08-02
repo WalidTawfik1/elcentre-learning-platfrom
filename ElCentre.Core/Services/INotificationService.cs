@@ -8,7 +8,8 @@ namespace ElCentre.Core.Services
         Task<CourseNotification> CreateCourseNotificationAsync(CourseNotification notification);
         Task<CourseNotification> CourseStatusNotification(CourseNotification notification, string instructorId);
         Task<List<CourseNotification>> GetCourseNotificationsForUserAsync(string userId, int courseId, bool unreadOnly = false);
-        
+        Task<List<CourseNotification>> GetCourseNotificationsForInstructorAsync(string instructorId, int courseId);
+
         // Global notifications
         Task<List<CourseNotification>> GetAllNotificationsForUserAsync(string userId, bool unreadOnly = false, int page = 1, int pageSize = 20);
         Task<List<CourseNotification>> GetNotificationsByRoleAsync(string userRole, bool unreadOnly = false);

@@ -89,7 +89,7 @@ namespace ElCentre.Infrastructure.Repositories
                             CreatedById = createdById,
                             CreatedByName = createdByName,
                             CreatorImage = creatorImage,
-                            NotificationType = NotificationTypes.NewAnswer,
+                            NotificationType = NotificationTypes.NewQuestion,
                             TargetUserId = course.InstructorId // Notify the instructor
                         };
                         await _notification.CreateCourseNotificationAsync(notification);
