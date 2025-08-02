@@ -4,6 +4,7 @@ using ElCentre.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ElCentre.Infrastructure.Migrations
 {
     [DbContext(typeof(ElCentreDbContext))]
-    partial class ElCentreDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250802203859_Added_SoftDelete_to_Lesson_Module")]
+    partial class Added_SoftDelete_to_Lesson_Module
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -22,6 +22,8 @@ namespace ElCentre.Core.Entities
 
         public bool IsPublished { get; set; } = true;
 
+        public bool IsDeleted { get; set; } = false;
+
         [ForeignKey("Course")]
         public int CourseId { get; set; }
         public Course Course { get; set; } 

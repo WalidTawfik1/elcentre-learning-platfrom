@@ -179,7 +179,7 @@ namespace ElCentre.API.Controllers
                 {
                     return BadRequest(new APIResponse(400, "Sign in first as instructor "));
                 }
-               var result = await work.LessonRepository.DeleteAndReorderAsync(id,InstructorId);
+                var result = await work.LessonRepository.DeleteAndReorderAsync(id, InstructorId);
                 if (!result)
                 {
                     return NotFound(new APIResponse(404, "Lesson not found or you don't have permission to delete it"));
@@ -188,7 +188,12 @@ namespace ElCentre.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new APIResponse(500, ex.Message));
+                var errorMessage = ex.Message;
+                if (ex.InnerException != null)
+                {
+                    errorMessage += " | Inner Exception: " + ex.InnerException.Message;
+                }
+                return BadRequest(new APIResponse(500, errorMessage));
             }
         }
     }

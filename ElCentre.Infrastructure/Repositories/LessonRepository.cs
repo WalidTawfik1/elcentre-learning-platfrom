@@ -96,7 +96,7 @@ namespace ElCentre.Infrastructure.Repositories
             }
 
             // Delete the lesson
-            _context.Lessons.Remove(lessonToDelete);
+            lessonToDelete.IsDeleted = true;
 
             // Get all lessons in the same module with higher OrderIndex
             var lessonsToUpdate = await _context.Lessons
@@ -117,7 +117,7 @@ namespace ElCentre.Infrastructure.Repositories
         public async Task<IReadOnlyList<Lesson>> GetLessonsByModuleIdAsync(int moduleId)
         {
             return await _context.Lessons
-                .Where(l => l.ModuleId == moduleId)
+                .Where(l => l.ModuleId == moduleId && !l.IsDeleted)
                 .OrderBy(l => l.OrderIndex)
                 .ToListAsync();
         }
@@ -136,7 +136,7 @@ namespace ElCentre.Infrastructure.Repositories
 
                 // Get the existing lesson
                 var existingLesson = await _context.Lessons
-                    .FirstOrDefaultAsync(l => l.Id == lesson.Id);
+                    .FirstOrDefaultAsync(l => l.Id == lesson.Id && !l.IsDeleted);
                 if (existingLesson == null)
                     return false;
 

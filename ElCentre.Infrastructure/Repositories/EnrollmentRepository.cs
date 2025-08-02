@@ -119,7 +119,7 @@ namespace ElCentre.Infrastructure.Repositories
             var completedLessons = await _context.CompletedLessons
                 .Include(cl => cl.Lesson)
                 .ThenInclude(l => l.Module)
-                .Where(cl => cl.StudentId == studentId && cl.Lesson.Module.CourseId == courseId)
+                .Where(cl => cl.StudentId == studentId && cl.Lesson.Module.CourseId == courseId && !cl.Lesson.IsDeleted && cl.Lesson.IsPublished)
                 .ToListAsync();
 
             if (completedLessons == null || !completedLessons.Any())
@@ -141,7 +141,7 @@ namespace ElCentre.Infrastructure.Repositories
             // Get total lessons in the course
             var totalLessons = await _context.Lessons
                 .Include(l => l.Module)
-                .Where(l => l.Module.CourseId == enrollment.CourseId)
+                .Where(l => l.Module.CourseId == enrollment.CourseId && !l.IsDeleted && l.IsPublished)
                 .CountAsync();
 
             if (totalLessons == 0)
@@ -152,7 +152,7 @@ namespace ElCentre.Infrastructure.Repositories
                 .Include(cl => cl.Lesson)
                 .ThenInclude(l => l.Module)
                 .Where(cl => cl.StudentId == enrollment.StudentId &&
-                       cl.Lesson.Module.CourseId == enrollment.CourseId)
+                       cl.Lesson.Module.CourseId == enrollment.CourseId && !cl.Lesson.IsDeleted && cl.Lesson.IsPublished)
                 .CountAsync();
 
             // Calculate progress percentage

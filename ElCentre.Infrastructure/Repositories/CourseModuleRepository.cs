@@ -60,7 +60,7 @@ namespace ElCentre.Infrastructure.Repositories
             int deletedOrderIndex = moduleToDelete.OrderIndex;
 
             // Delete the module
-            _context.CourseModules.Remove(moduleToDelete);
+            moduleToDelete.IsDeleted = true; // Soft delete
 
             // Get all modules in the same course with higher OrderIndex
             var modulesToUpdate = await _context.CourseModules
@@ -81,7 +81,7 @@ namespace ElCentre.Infrastructure.Repositories
         public async Task<IReadOnlyList<CourseModule>> GetModulesByCourseIdAsync(int courseId)
         {
             return await _context.CourseModules
-                .Where(m => m.CourseId == courseId)
+                .Where(m => m.CourseId == courseId && !m.IsDeleted)
                 .OrderBy(m => m.OrderIndex)
                 .ToListAsync();
         }
@@ -92,7 +92,7 @@ namespace ElCentre.Infrastructure.Repositories
             {
                 // Get the existing module with its current CourseId
                 var existingModule = await _context.CourseModules
-                    .Where(m => m.Course.InstructorId == instructorId)
+                    .Where(m => m.Course.InstructorId == instructorId && !m.IsDeleted)
                     .FirstOrDefaultAsync(m => m.Id == courseModule.Id);
                 if (existingModule == null)
                     return false;
