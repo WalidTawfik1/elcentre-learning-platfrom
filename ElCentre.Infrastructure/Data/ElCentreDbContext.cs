@@ -30,6 +30,8 @@ namespace ElCentre.Infrastructure.Data
         public DbSet<LessonAnswer> LessonAnswers { get; set; }
         public DbSet<CouponCode> CouponCodes { get; set; }
         public DbSet<CouponUsage> CouponUsages { get; set; }
+        public DbSet<ReportQ_A> ReportQ_As { get; set; }
+        public DbSet<HelpfulQ_A> HelpfulQ_As { get; set; }
 
         public ElCentreDbContext(DbContextOptions<ElCentreDbContext> options) : base(options)
         {

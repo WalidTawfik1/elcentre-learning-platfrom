@@ -310,7 +310,7 @@ namespace ElCentre.API.Controllers
                 {
                     return Ok(new APIResponse(200, "Report submitted successfully."));
                 }
-                return BadRequest(new APIResponse(400, "Failed to submit report. Please try again."));
+                return BadRequest(new APIResponse(400, "You've already reported this or something went wrong."));
             }
             catch (Exception ex)
             {
@@ -324,21 +324,28 @@ namespace ElCentre.API.Controllers
         /// <param name="questionId"></param>
         /// <param name="answerId"></param>
         /// <returns></returns>
-        [HttpPut("helpful-qa")]
+        [Authorize]
+        [HttpPost("helpful-qa")]
         public async Task<IActionResult> HelpfulQA(int? questionId, int? answerId)
         {
             if (questionId == null && answerId == null)
             {
                 return BadRequest(new APIResponse(400, "Invalid request. Either questionId or answerId must be provided."));
             }
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new APIResponse(401, "Please login or register first."));
+            }
             try
             {
-                var result = await work.Q_ARepository.HelpfulQA(questionId, answerId);
+
+                var result = await work.Q_ARepository.HelpfulQA(questionId, answerId, userId);
                 if (result)
                 {
                     return Ok(new APIResponse(200, "Marked as helpful successfully."));
                 }
-                return BadRequest(new APIResponse(400, "Failed to mark as helpful. Please try again."));
+                return BadRequest(new APIResponse(400, "You've already marked this as helpful or something went wrong."));
             }
             catch (Exception ex)
             {

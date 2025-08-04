@@ -145,10 +145,15 @@ namespace ElCentre.Infrastructure.Repositories
             return questions;
         }
 
-        public async Task<bool> HelpfulQA(int? questionId, int? answerId)
+        public async Task<bool> HelpfulQA(int? questionId, int? answerId, string userId)
         {
             if (questionId != null && answerId == null)
             {
+                // Check if the user has already marked this question as helpful
+                var existingHelpful = await _context.HelpfulQ_As
+                    .FirstOrDefaultAsync(h => h.QuestionId == questionId && h.UserId == userId);
+                if (existingHelpful != null) return false; // User has already marked this question as helpful
+
                 // Increment helpful count for question
                 var question = await _context.LessonQuestions.FindAsync(questionId);
                 if (question == null)
@@ -156,9 +161,25 @@ namespace ElCentre.Infrastructure.Repositories
                     return false; // Question not found
                 }
                 question.HelpfulCount++;
+
+                // Create a new HelpfulQ_A record
+                var helpfulRecord = new HelpfulQ_A
+                {
+                    UserId = userId,
+                    QuestionId = questionId,
+                    AnswerId = null,
+                    CreatedAt = DateTime.Now
+                };
+                await _context.HelpfulQ_As.AddAsync(helpfulRecord);
+
             }
             else if (answerId != null && questionId == null)
             {
+                // Check if the user has already marked this answer as helpful
+                var existingHelpful = await _context.HelpfulQ_As
+                    .FirstOrDefaultAsync(h => h.AnswerId == answerId && h.UserId == userId);
+                if (existingHelpful != null) return false; // User has already marked this answer as helpful
+
                 // Increment helpful count for answer
                 var answer = await _context.LessonAnswers.FindAsync(answerId);
                 if (answer == null)
@@ -166,6 +187,16 @@ namespace ElCentre.Infrastructure.Repositories
                     return false; // Answer not found
                 }
                 answer.HelpfulCount++;
+
+                // Create a new HelpfulQ_A record
+                var helpfulRecord = new HelpfulQ_A
+                {
+                    UserId = userId,
+                    QuestionId = null,
+                    AnswerId = answerId,
+                    CreatedAt = DateTime.Now
+                };
+                await _context.HelpfulQ_As.AddAsync(helpfulRecord);
             }
             else
             {
@@ -191,6 +222,10 @@ namespace ElCentre.Infrastructure.Repositories
         {
             if (questionId != null && answerId == null)
             {
+                var existingReport = await _context.ReportQ_As.FirstOrDefaultAsync(r => r.QuestionId == questionId && r.UserId == userID);
+                if (existingReport != null) {
+                    return false; // User has already reported this question
+                }
                 // Report a question
                 var question = await _context.LessonQuestions.FindAsync(questionId);
                 var lesson = await _context.Lessons
@@ -204,6 +239,18 @@ namespace ElCentre.Infrastructure.Repositories
                 {
                     return false; // Question or course not found
                 }
+
+                // Create the report
+                var report = new ReportQ_A
+                {
+                    QuestionId = question.Id,
+                    AnswerId = null,
+                    UserId = userID,
+                    Reason = reason,
+                    CreatedAt = DateTime.Now
+                };
+                await _context.ReportQ_As.AddAsync(report);
+
                 var notification = new CourseNotification
                 {
                     Title = "Question Reported",
@@ -221,6 +268,10 @@ namespace ElCentre.Infrastructure.Repositories
             }
             else if (answerId != null && questionId == null)
             {
+                var existingReport = await _context.ReportQ_As.FirstOrDefaultAsync(r => r.AnswerId == answerId && r.UserId == userID);
+                if (existingReport != null) {
+                    return false; // User has already reported this answer
+                }
                 // Report an answer
                 var answer = await _context.LessonAnswers.FindAsync(answerId);
                 var question = await _context.LessonQuestions.FindAsync(answer.QuestionId);
@@ -235,6 +286,18 @@ namespace ElCentre.Infrastructure.Repositories
                 {
                     return false; // Answer or course not found
                 }
+
+                // Create the report
+                var report = new ReportQ_A
+                {
+                    QuestionId = null,
+                    AnswerId = answer.Id,
+                    UserId = userID,
+                    Reason = reason,
+                    CreatedAt = DateTime.Now
+                };
+                await _context.ReportQ_As.AddAsync(report);
+
                 var notification = new CourseNotification
                 {
                     Title = "Answer Reported",
