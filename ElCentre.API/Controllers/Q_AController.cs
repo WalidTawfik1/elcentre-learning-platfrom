@@ -27,7 +27,7 @@ namespace ElCentre.API.Controllers
             {
                 var questions = await work.Q_ARepository.GetQuestionsByLessonIdAsync(lessonId);
 
-                    return Ok(questions);               
+                return Ok(questions);
             }
             catch (Exception ex)
             {
@@ -311,6 +311,34 @@ namespace ElCentre.API.Controllers
                     return Ok(new APIResponse(200, "Report submitted successfully."));
                 }
                 return BadRequest(new APIResponse(400, "Failed to submit report. Please try again."));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new APIResponse(500, $"An unexpected error occurred: {ex.Message}."));
+            }
+        }
+
+        /// <summary>
+        /// Marks a question or answer as helpful.
+        /// </summary>
+        /// <param name="questionId"></param>
+        /// <param name="answerId"></param>
+        /// <returns></returns>
+        [HttpPut("helpful-qa")]
+        public async Task<IActionResult> HelpfulQA(int? questionId, int? answerId)
+        {
+            if (questionId == null && answerId == null)
+            {
+                return BadRequest(new APIResponse(400, "Invalid request. Either questionId or answerId must be provided."));
+            }
+            try
+            {
+                var result = await work.Q_ARepository.HelpfulQA(questionId, answerId);
+                if (result)
+                {
+                    return Ok(new APIResponse(200, "Marked as helpful successfully."));
+                }
+                return BadRequest(new APIResponse(400, "Failed to mark as helpful. Please try again."));
             }
             catch (Exception ex)
             {

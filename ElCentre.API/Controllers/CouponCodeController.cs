@@ -106,6 +106,11 @@ namespace ElCentre.API.Controllers
             }
         }
 
+        /// <summary>
+        /// Deletes a coupon code by ID.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Admin, Instructor")]
         [HttpDelete("delete-coupon-code/{id}")]
         public async Task<IActionResult> DeleteCouponCode(int id)
@@ -119,6 +124,12 @@ namespace ElCentre.API.Controllers
             return Ok(new APIResponse(200,$"Coupon code with ID {id} has been deleted successfully."));
         }
 
+        /// <summary>
+        /// Applies a coupon code to a course for the authenticated user.
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="courseId"></param>
+        /// <returns></returns>
         [Authorize]
         [HttpGet("apply-coupon-code")]
         public async Task<IActionResult> ApplyCouponCode(string code, int courseId)

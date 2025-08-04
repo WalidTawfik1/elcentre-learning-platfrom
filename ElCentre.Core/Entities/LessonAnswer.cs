@@ -24,6 +24,8 @@ namespace ElCentre.Core.Entities
         public bool IsInstructor { get; set; } = false;
         public bool IsEdited { get; set; } = false;
         public DateTime? EditedAt { get; set; } = null;
+        public int HelpfulCount { get; set; } = 0;
+
 
         [Required]
         [ForeignKey("Question")]

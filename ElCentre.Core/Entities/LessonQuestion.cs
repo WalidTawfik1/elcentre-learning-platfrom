@@ -24,6 +24,7 @@ namespace ElCentre.Core.Entities
         public bool IsEdited { get; set; } = false;
         public DateTime? EditedAt { get; set; } = null;
         public bool IsPinned { get; set; } = false;
+        public int HelpfulCount { get; set; } = 0;
 
         [Required]
         [ForeignKey("Lesson")]

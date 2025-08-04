@@ -128,6 +128,8 @@ namespace ElCentre.Infrastructure.Repositories
         {
             var answers = await _context.LessonAnswers
                 .Where(a => a.QuestionId == questionId)
+                .OrderByDescending(a => a.HelpfulCount)
+                .ThenByDescending(a => a.CreatedAt)
                 .ToListAsync();
             return answers;
 
@@ -137,8 +139,40 @@ namespace ElCentre.Infrastructure.Repositories
         {
             var questions = await _context.LessonQuestions
                 .Where(q => q.LessonId == lessonId)
+                .OrderByDescending(q => q.HelpfulCount)
+                .ThenByDescending(q => q.CreatedAt)
                 .ToListAsync();
             return questions;
+        }
+
+        public async Task<bool> HelpfulQA(int? questionId, int? answerId)
+        {
+            if (questionId != null && answerId == null)
+            {
+                // Increment helpful count for question
+                var question = await _context.LessonQuestions.FindAsync(questionId);
+                if (question == null)
+                {
+                    return false; // Question not found
+                }
+                question.HelpfulCount++;
+            }
+            else if (answerId != null && questionId == null)
+            {
+                // Increment helpful count for answer
+                var answer = await _context.LessonAnswers.FindAsync(answerId);
+                if (answer == null)
+                {
+                    return false; // Answer not found
+                }
+                answer.HelpfulCount++;
+            }
+            else
+            {
+                return false; // Invalid parameters
+            }
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<bool> PinQuestionAsync(int questionId, bool isPinned)

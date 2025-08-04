@@ -18,6 +18,7 @@ namespace ElCentre.Core.Interfaces
         Task<bool> UpdateQuestionAsync(int questionId, string createdById, string question);
         Task<bool> UpdateAnswerAsync(int answerId, string createdById, string answer);
         Task<bool> PinQuestionAsync(int questionId, bool isPinned);
-        Task<bool> ReportQA(int? questionId, int? answerId, string userID, string reason);
+        Task<bool> ReportQA(int? questionId, int? answerId, string userID, string reason);  
+        Task<bool> HelpfulQA(int? questionId, int? answerId);
     }
 }

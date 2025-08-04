@@ -263,6 +263,11 @@ namespace ElCentre.API.Controllers
             return Ok(new { message = "Expired notifications cleaned up" });
         }
 
+        /// <summary>
+        /// Gets notifications for a specific course for instructors.
+        /// </summary>
+        /// <param name="courseId"></param>
+        /// <returns></returns>
         [Authorize(Roles = "Instructor")]
         [HttpGet("get-instructor-notifications/{courseId}")]
         public async Task<IActionResult> GetInstructorNotifications(int courseId)
