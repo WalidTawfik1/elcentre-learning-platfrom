@@ -246,5 +246,28 @@ namespace ElCentre.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> UnCompleteAsync(int lessonId, string studentId)
+        {
+            if (lessonId <= 0 || string.IsNullOrEmpty(studentId))
+                return false;
+            // Find the completed lesson
+            var completedLesson = await _context.CompletedLessons
+                .FirstOrDefaultAsync(cl => cl.LessonId == lessonId && cl.StudentId == studentId);
+            if (completedLesson == null)
+                return false; // Not completed
+            // Remove the completed lesson
+            _context.CompletedLessons.Remove(completedLesson);
+            await _context.SaveChangesAsync();
+            // Recalculate progress for the enrollment
+            var enrollment = await _context.Enrollments
+                .FirstOrDefaultAsync(e => e.Id == completedLesson.EnrollmentId);
+            if (enrollment != null)
+            {
+                await CalculateAndUpdateProgressAsync(enrollment.Id);
+            }
+            return true;
+
+        }
     }
 }

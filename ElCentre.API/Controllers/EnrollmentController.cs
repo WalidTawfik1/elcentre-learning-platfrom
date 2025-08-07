@@ -277,5 +277,30 @@ namespace ElCentre.API.Controllers
                 return BadRequest(new APIResponse(400, errorMessage));
             }
         }
+
+        /// <summary>
+        /// Uncomplete a lesson for the student
+        /// </summary>
+        /// <param name="lessonId"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpDelete("uncomplete-lesson/{lessonId}")]
+        public async Task<IActionResult> UnCompleteLesson(int lessonId)
+        {
+            try
+            {
+                if (lessonId <= 0)
+                    return BadRequest(new APIResponse(400, "Invalid lesson ID"));
+                string studentId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+                var result = await work.EnrollmentRepository.UnCompleteAsync(lessonId, studentId);
+                if (result)
+                    return Ok(new APIResponse(200, "Lesson uncompleted successfully."));
+                return BadRequest(new APIResponse(400, "Failed to uncomplete lesson."));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
