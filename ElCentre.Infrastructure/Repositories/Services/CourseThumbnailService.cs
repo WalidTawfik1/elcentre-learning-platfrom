@@ -47,13 +47,16 @@ namespace ElCentre.Infrastructure.Repositories.Services
             var safeFileName = string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
             var finalFileName = $"{safeFileName}_{DateTime.UtcNow.Ticks}{fileExtension}";
 
-            var imageDirectory = Path.Combine("wwwroot", "CourseThumbnails", src);
+            // Sanitize the src parameter for directory name
+            var safeSrc = string.Join("_", src.Split(Path.GetInvalidPathChars().Concat(Path.GetInvalidFileNameChars()).ToArray()));
+
+            var imageDirectory = Path.Combine("wwwroot", "CourseThumbnails", safeSrc);
             if (!Directory.Exists(imageDirectory))
             {
                 Directory.CreateDirectory(imageDirectory);
             }
 
-            var imageSrc = $"/CourseThumbnails/{src}/{finalFileName}";
+            var imageSrc = $"/CourseThumbnails/{safeSrc}/{finalFileName}";
             var root = Path.Combine(imageDirectory, finalFileName);
 
             using (var stream = new FileStream(root, FileMode.Create))
