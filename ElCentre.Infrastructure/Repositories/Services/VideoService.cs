@@ -56,7 +56,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
         public async Task<string> UploadVideoAsync(IFormFile file)
         {
             if (file == null || file.Length == 0)
-                throw new ArgumentException("File is empty.");
+                throw new ArgumentException("File is empty.");  
 
             var uploadParams = new VideoUploadParams()
             {
@@ -68,9 +68,6 @@ namespace ElCentre.Infrastructure.Repositories.Services
                   new EagerTransformation().Width(160).Height(90).Crop("fill").AudioCodec("none")
                 },
                 EagerAsync = true,
-                //EagerNotificationUrl = "https://yourdomain.com/api/cloudinary/notify"
-
-
             };
 
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);

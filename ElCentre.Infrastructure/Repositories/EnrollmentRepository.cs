@@ -183,7 +183,7 @@ namespace ElCentre.Infrastructure.Repositories
                 return null;
 
             var enrollments =  await _context.Enrollments
-                .Where(e => e.StudentId == studentId && e.PaymentStatus == "Success")
+                .Where(e => e.StudentId == studentId && e.PaymentStatus == "Success" && e.Course.IsActive && !e.Course.IsDeleted)
                 .Include(e => e.Course)
                 .ToListAsync();
             if (enrollments == null)
