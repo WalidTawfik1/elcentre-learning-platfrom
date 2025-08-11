@@ -24,6 +24,8 @@ namespace ElCentre.Core.Entities
 
         public string Status { get; set; } = "Pending";
 
+        public string? CouponCode { get; set; }
+
         [ForeignKey("User")]
         public string UserId { get; set; }
         public AppUser User { get; set; }

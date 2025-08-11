@@ -21,7 +21,6 @@ namespace ElCentre.Infrastructure.Repositories.Services
 
         public async Task<decimal> ApplyCouponAsync(string couponCode, decimal amount, string studentId, int courseId)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
                 if (string.IsNullOrEmpty(couponCode))
@@ -48,26 +47,11 @@ namespace ElCentre.Infrastructure.Repositories.Services
                 // Apply discount
                 amount = ApplyDiscount(amount, coupon.DiscountType, coupon.DiscountValue);
 
-                // Decrement usage limit
-                coupon.UsageLimit -= 1;
-                _context.CouponCodes.Update(coupon);
-
-                // Log usage
-                await _context.CouponUsages.AddAsync(new CouponUsage
-                {
-                    CouponId = coupon.Id,
-                    UserId = studentId,
-                    UsedOn = DateTime.Now
-                });
-
                 await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-
                 return amount;
             }
             catch
             {
-                await transaction.RollbackAsync();
                 throw;
             }
         }

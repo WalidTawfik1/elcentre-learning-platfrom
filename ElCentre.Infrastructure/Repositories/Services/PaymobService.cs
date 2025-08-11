@@ -166,7 +166,8 @@ namespace ElCentre.Infrastructure.Repositories.Services
                 TransactionId = specialReference.ToString(),
                 EnrollmentId = enrollment.Id,
                 PaymentDate = DateTime.Now,
-                UserId = student.Id
+                UserId = student.Id,
+                CouponCode = couponCode
             };
 
             _context.Payments.Add(payment);
@@ -226,7 +227,39 @@ namespace ElCentre.Infrastructure.Repositories.Services
             enrollment.PaymentStatus = "Success";
             payment.Status = "Success";
 
-            var notfication = new CourseNotification
+            if(payment.CouponCode != null)
+            { 
+
+             using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    var coupon = await _context.CouponCodes
+                        .FirstOrDefaultAsync(c => c.Code == payment.CouponCode);
+
+                    if (coupon == null)
+                        throw new ArgumentException("Invalid or expired coupon code.");
+
+                    coupon.UsageLimit -= 1;
+                    _context.CouponCodes.Update(coupon);
+                    await _context.CouponUsages.AddAsync(new CouponUsage
+                    {
+                        CouponId = coupon.Id,
+                        UserId = payment.UserId,
+                        UsedOn = DateTime.Now
+                    });
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            }
+
+                var notfication = new CourseNotification
             {
                 Title = "Course Purchase Successful",
                 Message = $"🎊You have successfully enrolled in '{enrollment.Course?.Title ?? "Unknown Course"}'. Welcome to the course!🎊",
