@@ -59,17 +59,34 @@ namespace ElCentre.Infrastructure.Repositories.Services
 
         public async Task<List<CourseNotification>> GetCourseNotificationsForUserAsync(string userId, int courseId, bool unreadOnly = false)
         {
-            var query = from n in _dbContext.CourseNotifications
-                        where n.CourseId == courseId && n.IsActive &&
-                              (n.TargetUserId == null || n.TargetUserId == userId) &&
-                              (n.ExpiresAt == null || n.ExpiresAt > DateTime.Now) &&
-                              (n.CreatedById != userId || n.IsGlobal)
-                        join rs in _dbContext.NotificationReadStatuses
-                        on new { NotificationId = n.Id, UserId = userId }
-                        equals new { NotificationId = rs.NotificationId, UserId = rs.UserId }
-                        into readStatus
-                        from rs in readStatus.DefaultIfEmpty()
-                        select new { Notification = n, IsRead = rs != null && rs.IsRead };
+            var enrolled = await _dbContext.Enrollments
+             .FirstOrDefaultAsync(e => e.StudentId == userId && e.CourseId == courseId && e.PaymentStatus == "Success");
+
+            if (enrolled == null)
+            {
+                // User not enrolled → no notifications for this course
+                return new List<CourseNotification>();
+            }
+
+            var query =
+                from n in _dbContext.CourseNotifications
+                where n.CourseId == courseId
+                      && n.IsActive
+                      && (n.TargetUserId == null || n.TargetUserId == userId)
+                      && (n.ExpiresAt == null || n.ExpiresAt > DateTime.Now)
+                      && n.CreatedAt >= enrolled.EnrollmentDate
+                      && (n.CreatedById != userId || n.IsGlobal)
+                join rs in _dbContext.NotificationReadStatuses
+                    on new { NotificationId = n.Id, UserId = userId }
+                    equals new { NotificationId = rs.NotificationId, UserId = rs.UserId }
+                    into readStatus
+                from rs in readStatus.DefaultIfEmpty()
+                select new
+                {
+                    Notification = n,
+                    IsRead = rs != null && rs.IsRead
+                };
+
 
             if (unreadOnly)
             {
@@ -81,10 +98,11 @@ namespace ElCentre.Infrastructure.Repositories.Services
         }
 
         public async Task<List<CourseNotification>> GetAllNotificationsForUserAsync(string userId, bool unreadOnly = false, int page = 1, int pageSize = 20)
-        {            // Get user's enrolled courses
-            var enrolledCourseIds = await _dbContext.Enrollments
-                .Where(e => e.StudentId == userId)
-                .Select(e => e.CourseId)
+        {
+            // Get user's enrolled courses
+            var enrollments = await _dbContext.Enrollments
+                .Where(e => e.StudentId == userId && e.PaymentStatus == "Success")
+                .Select(e => new { e.CourseId, e.EnrollmentDate })
                 .ToListAsync();
 
             // Get user's role
@@ -94,20 +112,36 @@ namespace ElCentre.Infrastructure.Repositories.Services
                 .Join(_dbContext.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name)
                 .FirstOrDefaultAsync();
 
-            var query = from n in _dbContext.CourseNotifications
-                        where n.IsActive &&
-                              (n.ExpiresAt == null || n.ExpiresAt > DateTime.Now) &&
-                              (n.IsGlobal && n.CreatedById != userId ||
-                               n.TargetUserId == userId ||
-                               (n.TargetUserRole == "All") ||
-                               (n.TargetUserRole == userRole) ||
-                               (enrolledCourseIds.Contains(n.CourseId) && string.IsNullOrEmpty(n.TargetUserRole)))
-                        join rs in _dbContext.NotificationReadStatuses
-                        on new { NotificationId = n.Id, UserId = userId }
-                        equals new { NotificationId = rs.NotificationId, UserId = rs.UserId }
-                        into readStatus
-                        from rs in readStatus.DefaultIfEmpty()
-                        select new { Notification = n, IsRead = rs != null && rs.IsRead };
+            var query =
+                from n in _dbContext.CourseNotifications
+                join e in _dbContext.Enrollments
+                    on new { n.CourseId, StudentId = userId }
+                    equals new { e.CourseId, e.StudentId }
+                    into enrollmentGroup
+                from e in enrollmentGroup.DefaultIfEmpty()
+                where n.IsActive &&
+                      (n.ExpiresAt == null || n.ExpiresAt > DateTime.Now) &&
+                      (
+                          // Course-specific notifications after enrollment
+                          (e != null && e.PaymentStatus == "Success" && e.EnrollmentDate <= n.CreatedAt)
+                          ||
+                          // Global/role-based notifications
+                          (n.IsGlobal && n.CreatedById != userId) ||
+                          n.TargetUserId == userId ||
+                          n.TargetUserRole == "All" ||
+                          n.TargetUserRole == userRole
+                      )
+                join rs in _dbContext.NotificationReadStatuses
+                    on new { NotificationId = n.Id, UserId = userId }
+                    equals new { NotificationId = rs.NotificationId, UserId = rs.UserId }
+                    into readStatus
+                from rs in readStatus.DefaultIfEmpty()
+                select new
+                {
+                    Notification = n,
+                    IsRead = rs != null && rs.IsRead
+                };
+              
 
             if (unreadOnly)
             {
@@ -118,6 +152,7 @@ namespace ElCentre.Infrastructure.Repositories.Services
                 .OrderByDescending(x => x.Notification.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
+                .Distinct()
                 .ToListAsync();
 
             return results.Select(x => x.Notification).ToList();

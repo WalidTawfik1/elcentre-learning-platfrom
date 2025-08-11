@@ -39,6 +39,13 @@ namespace ElCentre.Infrastructure.Repositories
                 {
                     return null;
                 }
+
+                // Add email format validation
+                if (string.IsNullOrWhiteSpace(registerDTO.Email) || !IsValidEmail(registerDTO.Email))
+                {
+                    return "Please enter a valid email address";
+                }
+
                 if (await userManager.FindByEmailAsync(registerDTO.Email) != null)
                 {
                     return "This email already exists";
@@ -77,7 +84,7 @@ namespace ElCentre.Infrastructure.Repositories
                         return string.Join(", ", roleResult.Errors.Select(e => e.Description));
                     }
                 }
-                else if(registerDTO.UserType == "Admin")
+                else if (registerDTO.UserType == "Admin")
                 {
                     var roleResult = await userManager.AddToRoleAsync(user, "Admin");
                     if (!roleResult.Succeeded)
@@ -121,7 +128,20 @@ namespace ElCentre.Infrastructure.Repositories
             {
                 return null;
             }
+
+            // Add email format validation
+            if (string.IsNullOrWhiteSpace(loginDTO.Email) || !IsValidEmail(loginDTO.Email))
+            {
+                return "Please enter a valid email address";
+            }
+
             var user = await userManager.FindByEmailAsync(loginDTO.Email);
+
+            if (user == null)
+            {
+                return "Invalid Email or Password";
+            }
+
 
             if (!user.EmailConfirmed)
             {
@@ -336,6 +356,19 @@ namespace ElCentre.Infrastructure.Repositories
             await SendEmailWithOtp(email, otpCode, message);
 
             return true;
+        }
+
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
