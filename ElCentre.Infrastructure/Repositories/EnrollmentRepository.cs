@@ -173,6 +173,12 @@ namespace ElCentre.Infrastructure.Repositories
                 enrollment.CompletionDate = DateTime.Now;
             }
 
+            if (progressPercentage < 100 && enrollment.Status != "Active")
+            {
+                enrollment.Status = "Active";
+                enrollment.CompletionDate = null;
+            }
+
             await _context.SaveChangesAsync();
             return progressPercentage;
         }
