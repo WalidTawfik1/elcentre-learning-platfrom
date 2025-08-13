@@ -199,7 +199,7 @@ namespace ElCentre.Infrastructure.Repositories
                 .Include(c => c.Instructor)
                 .Include(c => c.Modules)
                 .Include(c => c.Reviews).ThenInclude(r => r.User)
-                .Where(c => c.InstructorId == InstructorId)
+                .Where(c => c.InstructorId == InstructorId && !c.IsDeleted)
                 .AsNoTracking();
             var result = mapper.Map<List<CourseDTO>>(courses);
             return result;
