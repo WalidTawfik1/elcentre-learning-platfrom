@@ -46,10 +46,18 @@ namespace ElCentre.Infrastructure.Repositories
                     return "Please enter a valid email address";
                 }
 
-                if (await userManager.FindByEmailAsync(registerDTO.Email) != null)
+                var existUser = await userManager.FindByEmailAsync(registerDTO.Email);
+
+                if (existUser != null && existUser.IsDeleted)
+                {
+                    return "This account has been deleted. Please contact elcentre.business@gmail.com for assistance.";
+                }
+
+                if (existUser != null)
                 {
                     return "This email already exists";
                 }
+
                 var user = new AppUser
                 {
                     FirstName = registerDTO.FirstName,
@@ -142,6 +150,10 @@ namespace ElCentre.Infrastructure.Repositories
                 return "Invalid Email or Password";
             }
 
+            if (user.IsDeleted)
+            {
+                return "This account has been deleted. Please contact elcentre.business@gmail.com for assistance.";
+            }
 
             if (!user.EmailConfirmed)
             {

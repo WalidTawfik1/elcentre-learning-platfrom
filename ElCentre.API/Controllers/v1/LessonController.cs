@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace ElCentre.API.Controllers
+namespace ElCentre.API.Controllers.v1
 {
     public class LessonController : BaseController
     {

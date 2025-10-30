@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace ElCentre.API.Controllers
+namespace ElCentre.API.Controllers.v2
 {
     [Authorize]
     public class Q_AController : BaseController

@@ -6,6 +6,7 @@ using ElCentre.Core.Interfaces;
 using ElCentre.Core.Services;
 using ElCentre.Core.Sharing;
 using ElCentre.Infrastructure.Data;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -13,7 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace ElCentre.API.Controllers
+namespace ElCentre.API.Controllers.v2
 {
     public class AccountController : BaseController
     {
@@ -141,7 +142,7 @@ namespace ElCentre.API.Controllers
             try
             {
                 // The repository method will get the ID from the authenticated user
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
                     return Unauthorized("User not authenticated, Please login or register.");
@@ -155,7 +156,7 @@ namespace ElCentre.API.Controllers
 
                 return Ok(user);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
@@ -178,7 +179,7 @@ namespace ElCentre.API.Controllers
                 }
                 return Ok(instructors);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
@@ -202,7 +203,7 @@ namespace ElCentre.API.Controllers
                 }
                 return Ok(instructor);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
@@ -219,7 +220,7 @@ namespace ElCentre.API.Controllers
         {
             try
             {
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
                     return Unauthorized("User not authenticated, Please login or register.");
@@ -232,7 +233,7 @@ namespace ElCentre.API.Controllers
             {
                 return NotFound(ex.Message);
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
@@ -437,6 +438,25 @@ namespace ElCentre.API.Controllers
 
         }
 
+        [Authorize]
+        [HttpPut("delete-account")]
+        public async Task<IActionResult> DeleteAccount()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User not authenticated, Please login or register.");
+            }
+            var result = await work.UserRepository.DeleteAccount(userId);
+            if (!result)
+            {
+                return BadRequest(new APIResponse(400, "Failed to delete account."));
+            }
+            await _signInManager.SignOutAsync();
+            Response.Cookies.Delete("token");
+            return Ok(new APIResponse(200, "Account deleted successfully."));
+        }
+
         /// <summary>
         /// Gets all users with pagination.(Admin Only)
         /// </summary>
@@ -461,6 +481,96 @@ namespace ElCentre.API.Controllers
             {
                 return BadRequest(ex.Message);
             }
+        }
+
+        /// <summary>
+        /// Google login for mobile applications.
+        /// </summary>
+        /// <param name="dto"></param>
+        /// <returns></returns>
+        [AllowAnonymous]
+        [HttpPost("mobile-google-login")]
+        public async Task<IActionResult> MobileGoogleLogin([FromBody] GoogleLoginDTO dto)
+        {
+            if (string.IsNullOrEmpty(dto.IdToken))
+                return BadRequest("Invalid ID token.");
+
+            // Validate role
+            if (dto.Role != "Student" && dto.Role != "Instructor")
+            {
+                dto.Role = "Student"; // Default to Student if invalid role
+            }
+
+            GoogleJsonWebSignature.Payload payload;
+            try
+            {
+                var settings = new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new List<string>
+                {
+                    _configuration["Authentication:Google:ClientId"]
+                }
+                };
+
+                payload = await GoogleJsonWebSignature.ValidateAsync(dto.IdToken, settings);
+            }
+            catch (InvalidJwtException ex)
+            {
+                return BadRequest("Invalid Google token: " + ex.Message);
+            }
+
+
+            var user = await _userManager.FindByLoginAsync("Google", payload.Subject);
+            if (user == null)
+            {
+                user = await _userManager.FindByEmailAsync(payload.Email);
+                if (user == null)
+                {
+                    user = new AppUser
+                    {
+                        UserName = payload.Email.Split('@')[0],
+                        Email = payload.Email,
+                        FirstName = payload.GivenName,
+                        LastName = payload.FamilyName,
+                        EmailConfirmed = true,
+                        UserType = dto.Role,
+                        Gender = "Unknown",
+                        DateOfBirth = DateOnly.FromDateTime(DateTime.Now),
+                        PhoneNumber = "0123456789",
+                        Country = "Unknown",
+                        ProfilePicture = payload.Picture,
+                        CreatedAt = DateTime.Now
+                    };
+
+                    var result = await _userManager.CreateAsync(user);
+                    if (!result.Succeeded)
+                        return BadRequest(new { message = "User creation failed", errors = result.Errors });
+
+                    await _userManager.AddToRoleAsync(user, "Customer");
+                }
+
+                var loginInfo = new UserLoginInfo("Google", payload.Subject, "Google");
+                var loginResult = await _userManager.AddLoginAsync(user, loginInfo);
+                if (!loginResult.Succeeded)
+                    return BadRequest(new { message = "Google login association failed", errors = loginResult.Errors });
+            }
+
+            await _signInManager.SignInAsync(user, isPersistent: false);
+
+            var token = _generateToken.GetAndCreateToken(user);
+
+            return Ok(new
+            {
+                Token = token,
+                User = new
+                {
+                    user.Id,
+                    user.Email,
+                    user.FirstName,
+                    user.LastName,
+                    user.UserType,
+                }
+            });
         }
     }
 }

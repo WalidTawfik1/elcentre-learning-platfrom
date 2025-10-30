@@ -44,6 +44,22 @@ namespace ElCentre.Infrastructure.Repositories
 
         }
 
+        public async Task<bool> DeleteAccount(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new ArgumentException("User ID cannot be null or empty.");
+            }
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                throw new KeyNotFoundException($"User with ID {userId} not found.");
+            }
+            user.IsDeleted = true;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<IEnumerable<UserDTO>> GetAllInstructorsAsync()
         {
             var instructors = await _context.Users

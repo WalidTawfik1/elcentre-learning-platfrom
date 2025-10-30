@@ -1,4 +1,5 @@
-﻿using ElCentre.Core.DTO;
+﻿using Asp.Versioning;
+using ElCentre.Core.DTO;
 using ElCentre.Core.Entities;
 using ElCentre.Core.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -6,10 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace ElCentre.API.Controllers
+namespace ElCentre.API.Controllers.v2
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
     [Authorize]
     public class NotificationsController : ControllerBase
     {

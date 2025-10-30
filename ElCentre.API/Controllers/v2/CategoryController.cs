@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ElCentre.API.Controllers
+namespace ElCentre.API.Controllers.v2
 {
     public class CategoryController : BaseController
     {

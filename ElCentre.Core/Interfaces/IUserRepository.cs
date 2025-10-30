@@ -16,6 +16,7 @@ namespace ElCentre.Core.Interfaces
         Task<UserDTO> GetInstructorById(string Id);
         Task<IEnumerable<UserDTO>> GetAllUsersAsync(PagenationParams pagenationParams);
         Task<bool> BlockAccount (string userId, bool block);
+        Task<bool> DeleteAccount (string userId);
 
     }
 }

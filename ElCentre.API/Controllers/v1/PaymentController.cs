@@ -1,4 +1,5 @@
-﻿using EcommerceGraduation.API.Helper;
+﻿using Asp.Versioning;
+using EcommerceGraduation.API.Helper;
 using ElCentre.API.Helper;
 using ElCentre.Core.Entities;
 using ElCentre.Core.Interfaces;
@@ -13,10 +14,11 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 
-namespace ElCentre.API.Controllers
+namespace ElCentre.API.Controllers.v1
 {
-    [Route("[controller]")]
     [ApiController]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("1.0")]
     public class PaymentController : ControllerBase
     {
         private readonly IPaymobService _paymobService;

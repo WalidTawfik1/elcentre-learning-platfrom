@@ -1,12 +1,14 @@
-﻿using AutoMapper;
+﻿using Asp.Versioning;
+using AutoMapper;
 using ElCentre.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ElCentre.API.Controllers
+namespace ElCentre.API.Controllers.v2
 {
-    [Route("[controller]")]
     [ApiController]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
     public class BaseController : ControllerBase
     {
         protected readonly IUnitofWork work;

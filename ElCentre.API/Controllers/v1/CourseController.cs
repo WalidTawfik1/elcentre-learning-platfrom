@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace ElCentre.API.Controllers
+namespace ElCentre.API.Controllers.v1
 {
     public class CourseController : BaseController
     {
@@ -266,7 +266,7 @@ namespace ElCentre.API.Controllers
             try
             {
                 if (string.IsNullOrEmpty(request.Decision) ||
-                    (request.Decision.ToLower() != "approve" && request.Decision.ToLower() != "reject"))
+                    request.Decision.ToLower() != "approve" && request.Decision.ToLower() != "reject")
                 {
                     return BadRequest(new APIResponse(400, "Decision must be either 'approve' or 'reject'."));
                 }

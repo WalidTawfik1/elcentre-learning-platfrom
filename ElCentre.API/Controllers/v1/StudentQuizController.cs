@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace ElCentre.API.Controllers
+namespace ElCentre.API.Controllers.v1
 {
     public class StudentQuizController : BaseController
     {

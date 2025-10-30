@@ -18,6 +18,8 @@ namespace ElCentre.Core.Entities
 
         public bool IsActive { get; set; } = true;
 
+        public bool IsDeleted { get; set; } = false;
+
         public string Gender { get; set; }
 
         public string UserType { get; set; }
