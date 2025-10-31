@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using EcommerceGraduation.API.Helper;
 using ElCentre.API.Helper;
 using ElCentre.Core.DTO;
 using ElCentre.Core.Entities;
@@ -385,6 +386,11 @@ namespace ElCentre.API.Controllers.v2
                     }
                 }
 
+                if(user.IsDeleted)
+                {
+                    return Content(HtmlGenerator.GenerateAccountDeletedHtml(), "text/html");
+                }
+
                 // Sign in the user using cookie authentication
                 await _signInManager.SignInAsync(user, isPersistent: false);
 
@@ -438,6 +444,10 @@ namespace ElCentre.API.Controllers.v2
 
         }
 
+        /// <summary>
+        /// Deletes the authenticated user's account.
+        /// </summary>
+        /// <returns></returns>
         [Authorize]
         [HttpPut("delete-account")]
         public async Task<IActionResult> DeleteAccount()

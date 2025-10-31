@@ -209,5 +209,10 @@
         {
             return GenerateHtml("Invalid HMAC", message, "secondary");
         }
+
+        public static string GenerateAccountDeletedHtml(string message = "This account has been deleted. Please contact elcentre.business@gmail.com for assistance.")
+        {
+            return GenerateHtml("Account Deleted", message, "danger");
+        }
     }
 }
